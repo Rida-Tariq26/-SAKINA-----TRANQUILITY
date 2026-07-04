@@ -1,0 +1,13 @@
+# --- Core Agent Framework ---
+google-adk>=2.0.0
+mcp>=1.0.0
+fastmcp>=0.1.0
+pydantic>=2.0.0
+
+# --- Web Server & API ---
+fastapi>=0.110.0
+uvicorn>=0.29.0
+
+# --- Model & Environment Utilities ---
+google-genai>=1.0.0
+python-dotenv>=1.0.0
