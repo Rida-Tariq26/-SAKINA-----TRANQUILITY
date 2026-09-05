@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 // ─────────────────────────────────────────────
 // MOOD TAB
@@ -61,20 +61,23 @@ const MoodTab = ({ isDark, tokensRef }) => {
         display: "block",
     };
 
-    const fetchDashboard = async () => {
-        setDashboardLoading(true);
-        try {
-            const res = await fetch(`/api/mood?mode=${mode}`);
-            const data = await res.json();
-            setDashboard(data);
-        } catch {
-            setDashboard({ error: true });
-        } finally {
-            setDashboardLoading(false);
-        }
-    };
-
-    useEffect(() => { fetchDashboard(); /* eslint-disable-next-line */ }, [mode]);
+    useEffect(() => {
+        let isMounted = true;
+        fetch(`/api/mood?mode=${mode}`)
+            .then((res) => res.json())
+            .then((data) => {
+                if (isMounted) setDashboard(data);
+            })
+            .catch(() => {
+                if (isMounted) setDashboard({ error: true });
+            })
+            .finally(() => {
+                if (isMounted) setDashboardLoading(false);
+            });
+        return () => {
+            isMounted = false;
+        };
+    }, [mode]);
 
     const submitMood = async () => {
         if (!emotion || submitting) return;

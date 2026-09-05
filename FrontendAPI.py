@@ -82,6 +82,7 @@ async def lifespan(app: FastAPI):
     
     # Build sync-safe wrappers so Google ADK can execute them without thread deadlocks
  
+    agent_tools = []
     for tool in mcp_tools_response.tools:
         def make_mcp_call(tool_name=tool.name):
             async def async_wrapper(**kwargs):
@@ -91,12 +92,10 @@ async def lifespan(app: FastAPI):
                 )
             return async_wrapper
 
-        agent_tools = []
-        for tool in mcp_tools_response.tools:
-            tool_func = make_mcp_call(tool.name)
-            tool_func.__name__ = tool.name
-            tool_func.__doc__ = tool.description or f"MCP tool: {tool.name}"
-            agent_tools.append(tool_func)
+        tool_func = make_mcp_call(tool.name)
+        tool_func.__name__ = tool.name
+        tool_func.__doc__ = tool.description or f"MCP tool: {tool.name}"
+        agent_tools.append(tool_func)
 
     # Instantiate the dynamic Agents
     chat_agent = Agent(name="Sakina", model="gemini-2.5-flash", instruction=SYSTEM_PROMPT, tools=agent_tools)
