@@ -527,10 +527,10 @@ To deploy Sakina to scalable cloud infrastructure:
 
 This project is licensed under the **MIT License**.
 
-- Built with ❤️ for the **Kaggle x Google 5-Day AI Agents Intensive Course**.
+- Built with efforts for the **Kaggle x Google 5-Day AI Agents Intensive Course**.
 - Powered by **Google Gemini 2.5 Flash** and **Google Agent Development Kit (ADK)**.
 - Gratitude to classical Islamic scholars and contemporary clinical researchers whose work bridges mind, heart, and spirit.
 
 ---
 
-*Made with intention. May it bring you tranquility (سكينة).*
+*Made with intention. May it bring you tranquility (سكينة).*
