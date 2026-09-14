@@ -1,5 +1,14 @@
 # Sensitive API keys and environment variables
 .env
+*.env
+.env.*
+!.env.example
+
+# Local SQLite databases & runtime data
+sakina.db
+*.db
+*.sqlite
+*.sqlite3
 
 # Python virtual environment files
 venv/
@@ -19,6 +28,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+sakina-frontend/
 *.local
 
 # Editor directories and files

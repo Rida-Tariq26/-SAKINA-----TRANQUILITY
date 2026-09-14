@@ -349,7 +349,7 @@ async def main():
 
     commentary_agent = Agent(
         name="SakinaMoodGuide",
-        model="gemini-2.5-flash",
+        model=os.environ.get("GEMINI_MODEL", "gemini-2.5-flash"),
         instruction=TREND_COMMENTARY_PROMPT,
     )
     runner = Runner(agent=commentary_agent, app_name=APP_NAME, session_service=session_service)

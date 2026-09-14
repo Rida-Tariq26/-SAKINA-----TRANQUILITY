@@ -1,276 +1,536 @@
-# Sakina
-### *A Guided Space for Psychological & Spiritual Tranquility*
+# Sakina (سكينة)
+### *A Guided AI Companion for Psychological & Spiritual Tranquility*
+
+[![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Google ADK](https://img.shields.io/badge/Google%20ADK-2.0%2B-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://github.com/google/agent-development-kit)
+[![Gemini](https://img.shields.io/badge/Gemini-2.5%20Flash-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white)](https://aistudio.google.com/)
+[![MCP](https://img.shields.io/badge/Protocol-FastMCP-FF6F00?style=for-the-badge)](https://modelcontextprotocol.io/)
+[![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-8.1-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [The Core Challenge](#the-core-challenge)
+- [Why an Agentic Architecture?](#why-an-agentic-architecture)
+- [System Architecture](#system-architecture)
+  - [High-Level Data Flow](#high-level-data-flow)
+  - [Model Context Protocol (MCP) Integration](#model-context-protocol-mcp-integration)
+  - [Safety & Guardrail Pipeline](#safety--guardrail-pipeline)
+- [Key Features](#key-features)
+  - [1. Adaptive Multi-Mode Conversational Companion](#1-adaptive-multi-mode-conversational-companion)
+  - [2. Dhikr & Evidence-Based Practice Engine](#2-dhikr--evidence-based-practice-engine)
+  - [3. Mood Tracking & Longitudinal Synthesis](#3-mood-tracking--longitudinal-synthesis)
+  - [4. Defense-in-Depth Crisis Detection](#4-defense-in-depth-crisis-detection)
+  - [5. Privacy & User Data Sovereignty (GDPR/CCPA)](#5-privacy--user-data-sovereignty-gdprccpa)
+- [Tech Stack](#tech-stack)
+- [Repository Structure](#repository-structure)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation & Local Setup](#installation--local-setup)
+  - [Running the Application](#running-the-application)
+- [Environment Variables](#environment-variables)
+- [API Reference](#api-reference)
+- [Security & Injection Mitigation](#security--injection-mitigation)
+- [Philosophical & Psychological Foundations](#philosophical--psychological-foundations)
+- [Production Deployment Roadmap](#production-deployment-roadmap)
+- [Disclaimer](#disclaimer)
+- [License & Acknowledgments](#license--acknowledgments)
 
 ---
 
 ## Overview
 
-**Sakina** (Arabic: *tranquility*) is a compassionate AI wellness companion that bridges **Islamic psychology** with **evidence-based mental health practices**. It provides a safe, non-judgmental space where users can process stress, anxiety, grief, and other emotional struggles — drawing from the Quran, Sunnah, and the work of scholars like Ibn al-Qayyim and Al-Ghazali, while grounding those insights in modern psychology (CBT, ACT, neuroscience).
+**Sakina** (*سكينة* — profound peace and tranquility) is an intelligent AI wellness companion that harmonizes **classical Islamic psychology** (*Ilm al-Nafs*) with **contemporary evidence-based mental health science**. 
 
-This project was built as a **Kaggle x Google 5-Day AI Agents Intensive capstone**, using the Google Agent Development Kit (ADK), the Model Context Protocol (MCP), and Gemini 2.5 Flash.
+Modern Muslims experiencing anxiety, grief, burnout, and emotional stress frequently navigate a false dichotomy:
+1. **Secular mental health applications**, which often overlook the deeply spiritual worldview, spiritual coping mechanisms, and faith identity of the individual.
+2. **Traditional religious resources**, which provide spiritual solace but frequently lack structured, evidence-based cognitive and behavioral tools.
 
----
+Sakina unifies these complementary paradigms. Drawing upon traditional scholars (*Al-Ghazali, Ibn al-Qayyim, Abu Zayd al-Balkhi*) and modern clinical frameworks (*Cognitive Behavioral Therapy, Acceptance & Commitment Therapy, Neuroscience, Polyvagal Theory*), Sakina delivers personalized emotional reflection, grounding exercises, and mood tracking within a secure, empathetic environment.
 
-## The Problem
-
-Muslim users seeking mental health support are often caught between two worlds: secular therapy tools that feel disconnected from their faith and identity, or religious resources that lack the structure and evidence base of modern psychology. Sakina closes that gap — not by picking a side, but by showing the two are already speaking about the same mechanisms. Tawakkul (trust in God) and ACT's concept of acceptance describe the same psychological move. Dhikr (remembrance of God) interrupts the rumination cycle the same way cognitive defusion does. Sakina makes those parallels visible, felt, and actionable in a single conversation.
-
----
-
-## Why Agents
-
-A static FAQ bot or a single prompt-and-response wrapper can't do what this problem needs: it has to hold a persona consistently across a multi-turn conversation, decide in real time which of three interpretive modes fits what the user just said, call out to persistent memory (mood history) mid-conversation, and — critically — recognize when a conversation has crossed from "emotional support" into "safety risk" and change its own behavior accordingly, without being told to. That combination of persistent state, tool use, and adaptive judgment across turns is what makes an agent architecture the right tool here, rather than a simpler retrieval or template system.
+> *Built as a capstone for the **Kaggle x Google 5-Day AI Agents Intensive**, powered by the **Google Agent Development Kit (ADK)**, **FastMCP**, and **Google Gemini 2.5 Flash**.*
 
 ---
 
-## Architecture
+## The Core Challenge
 
-**Sakina is a single ADK agent, augmented with tool use via MCP and a hybrid safety-classification pipeline — not a multi-agent system.** This was a deliberate architectural choice, not a limitation: the three conversational modes (faith-led, scientific, secular) are behavioral variations of one companion persona responding to conversational cues, not separable responsibilities that benefit from inter-agent delegation. Splitting them into distinct agents would add coordination overhead without adding capability. Where the system does need a second, narrowly-scoped "opinion" — classifying crisis risk, or detecting a farewell — it reuses the same underlying model with a tightly scoped prompt on an isolated session, which is cheaper and more predictable than asking the main conversational agent to self-report on those things mid-dialogue.
+Mental wellbeing tools must account for cognitive, emotional, physiological, and spiritual dimensions:
+
+| Traditional Islamic Concept | Modern Psychological Parallel | Unified Mechanism in Sakina |
+|:---|:---|:---|
+| **Tawakkul** (توكل - Relying on God after taking action) | **Acceptance** (ACT) & Locus of Control | Letting go of outcomes beyond personal control while taking meaningful action. |
+| **Dhikr** (ذكر - Rhythmic divine remembrance) | **Cognitive Defusion** & Attentional Reset | Breaking compulsive thought loops and negative ruminative cycles. |
+| **Muraqabah** (مراقبة - Mindful self-awareness) | **Mindfulness & MBSR** | Observing thoughts and bodily sensations non-judgmentally. |
+| **Muhasabah** (محاسبة - Honest self-accounting) | **Cognitive Restructuring** (CBT) | Identifying cognitive distortions, reflecting on actions, and recalibrating behavior. |
+| **Sabr** (صبر - Steadfast perseverance) | **Emotional Regulation & Distress Tolerance** | Developing psychological resilience during distress without suppression. |
+
+---
+
+## Why an Agentic Architecture?
+
+A traditional deterministic chatbot or single-turn LLM wrapper is insufficient for empathetic mental health dialogue:
+- **Dynamic Persona & Adaptive Modes:** The system must determine in real time whether a user seeks spiritual grounding, neuroscience-backed explanations, or purely secular frameworks—without forcing rigid menu trees.
+- **Stateful Memory & External Tools:** The companion must inspect historical mood trends over time (`mood_history_tool`) and record real-time shifts (`mood_log_tool`) via structured protocols mid-dialogue.
+- **Isolated Safety Supervision:** Crisis classification and farewell detection run in dedicated, isolated session contexts with hardened prompts to avoid contaminating the main conversational agent.
+- **Deterministic Crisis Short-Circuiting:** When life safety is at stake, the system must deterministically bypass LLM generation entirely to deliver localized crisis hotlines.
+
+---
+
+## System Architecture
+
+Sakina employs a unified **Google ADK Agent** runner connected to a local **FastMCP (Model Context Protocol)** subprocess, supported by a hybrid multi-layer safety guardrail.
+
+### High-Level Data Flow
 
 ```mermaid
 flowchart TD
-    U[User] -->|HTTP POST /api/chat| API[FastAPI Backend]
-    API --> GR{Guardrail Pipeline}
-    GR -->|"1. Keyword pre-screen (deterministic)"| KW[Crisis Signal Scan]
-    KW -->|Severe match| T3[Tier 3: Session Override<br/>LLM blocked, hotline surfaced]
-    KW -->|Moderate match| LJ["2. LLM Judge<br/>(isolated session, hardened prompt)"]
-    LJ -->|Tier result, floored at MODERATE<br/>if injection markers present| TResp[Tiered Response Builder]
-    KW -->|No signal| AG
-    TResp -->|Mild/Moderate: continue| AG[ADK Agent: Sakina<br/>Gemini 2.5 Flash]
-    AG -->|Tool call| MCP[FastMCP Server]
-    MCP --> ML[(mood_log.json)]
-    AG -->|Farewell check<br/>isolated session| FW{Farewell?}
-    FW -->|Yes| Close[Warm closing + verse/hadith]
-    FW -->|No| Resp[Response to user]
-    T3 --> U
-    Resp --> U
-    Close --> U
+    subgraph Client["Frontend Layer (React 19 + Vite)"]
+        UI[User Interface: Chat / Dhikr / Mood Tracker / Settings]
+    end
+
+    subgraph API["FastAPI Backend Orchestrator (FrontendAPI.py)"]
+        Router{API Route Dispatcher}
+        DB[(SQLite: sakina.db)]
+        OAuth[Google OAuth2 Verification]
+    end
+
+    subgraph Guardrail["Safety & Crisis Pipeline (guardrails.py)"]
+        KW[1. Deterministic Keyword Pre-Screen]
+        Judge[2. Hardened LLM Safety Judge]
+        TierGen[3. Tiered Response Builder & Geolocation Hotlines]
+    end
+
+    subgraph ADK["Google ADK Agent Layer (Gemini 2.5 Flash)"]
+        Agent[Sakina Conversational Agent]
+        SessionMgr[InMemory Session Service]
+    end
+
+    subgraph MCP["Model Context Protocol Layer (server.py)"]
+        MCPServer[FastMCP stdio Server]
+        MoodFile[(mood_log.json)]
+    end
+
+    UI -->|HTTP REST Requests| Router
+    Router -->|User profile & GDPR data| DB
+    Router -->|OAuth Token| OAuth
+
+    Router -->|Chat Message| KW
+    KW -->|Severe Crisis Trigger| TierGen
+    TierGen -->|Immediate Hotline Override - LLM Blocked| UI
+
+    KW -->|Moderate / Ambiguous| Judge
+    Judge -->|Validated Severity Level| TierGen
+    TierGen -->|Mild / Moderate Nudge| Agent
+
+    KW -->|Clean / No Signal| Agent
+    Agent <-->|Session State| SessionMgr
+    Agent <-->|JSON-RPC via Stdio| MCPServer
+    MCPServer <-->|Read / Write History| MoodFile
+
+    Agent -->|Generated Response| UI
 ```
 
-**Data flow:**
-```
-React Frontend (Vite dev or built dist/)
-        │  HTTP  /api  →  localhost:8000
-        ▼
-FastAPI Backend  (FrontendAPI.py)
-        │  Guardrail evaluation → Google ADK Runner
-        ▼
-Gemini 2.5 Flash Agent  ⇄  FastMCP Server (server.py)
-                            [mood_log_tool, mood_history_tool]
-```
+### Model Context Protocol (MCP) Integration
 
-### Project Structure
-```
-sakina_agent/
-├─ FrontendAPI.py       # FastAPI backend; ADK agent + MCP client wiring; all HTTP routes
-├─ agent.py             # Farewell detection helper, guardrail integration
-├─ dhikr.py             # Dhikr/secular practice tables, AI commentary personalization
-├─ mood_tracker.py      # Mood logging, statistics, AI-generated reflections
-├─ guardrails.py        # Three-tier crisis detection: keyword scan → hardened LLM judge → tiered response
-├─ system_prompt.py     # Sakina's identity, three interpretive modes, conversation rules
-├─ server.py            # FastMCP server exposing mood_log_tool, mood_history_tool
-├─ tools.py             # Shared tool utilities
-├─ mood_log.json        # Persistent mood history (auto-created on first log)
-├─ requirements.txt
-├─ package.json
-└─ src/                 # React + Vite frontend
-   ├─ App.jsx           # Chat tab, Dhikr tab, app shell
-   ├─ MoodTab.jsx        # Mood Tracker UI
-   ├─ App.css
-   └─ index.css
+Sakina utilizes the **Model Context Protocol (MCP)** to establish a clean boundary between core agent reasoning and tool execution:
+- **Server (`server.py`):** Spawns a background `FastMCP` service over standard input/output (`stdio`), registering tools:
+  - `mood_log_tool(emotional_state: str, intensity: int)`: Persists structured mood snapshots.
+  - `mood_history_tool()`: Formats recent mood history into actionable context for conversational synthesis.
+- **Client (`FrontendAPI.py`):** Dynamically inspects the tool registry upon server startup, wraps each discovered tool in an asynchronous call handler, and injects them directly into the Google ADK `Agent` definition.
+
+### Safety & Guardrail Pipeline
+
+Safety is treated as a first-class engineering concern using a **3-tier hybrid evaluation pipeline**:
+
+```mermaid
+flowchart LR
+    Msg[User Input] --> Step1{Deterministic Keyword Scan}
+    Step1 -->|Tier 3: Severe Crisis| Block[Block LLM Immediately & Return Country-Specific Hotline]
+    Step1 -->|Tier 2: Moderate Signals| Step2[Isolated LLM Judge with Delimiter Isolation]
+    Step1 -->|Tier 0: Safe / Normal| Agent[Standard ADK Execution]
+    
+    Step2 --> Enforce{Injection or Downgrade Check}
+    Enforce -->|Floor Enforced >= Tier 2| T2Resp[Warm Escalation + Crisis Hotline + Empathy]
+    Enforce -->|Tier 1: Mild Distress| T1Resp[Validation + Coping Strategy Nudge]
 ```
 
 ---
 
-## Features
+## Key Features
 
-### Chat (Guided Conversation)
-A conversational agent that listens, validates, and gently guides, operating in three adaptive modes selected by the model based on conversational cues rather than a hard-coded switch:
-- **Mode 1 — Faith-led (default):** leads with Islamic concepts (Tawakkul, Sabr, Dhikr, Muraqabah), reinforced with the psychological parallel.
-- **Mode 2 — Scientific Inquiry:** leads with neuroscience/psychology (CBT, ACT), anchored back to the Islamic tradition.
-- **Mode 3 — Secular Only:** activates only on explicit user request; uses evidence-based frameworks exclusively.
+### 1. Adaptive Multi-Mode Conversational Companion
+Sakina supports three flexible conversational modes, dynamically chosen based on contextual cues:
+- **Faith-Led Mode (Default):** Integrates Islamic spiritual principles (*Tawakkul, Sabr, Dhikr, Muraqabah*) and pairs them with psychological validation.
+- **Scientific Inquiry Mode:** Prioritizes cognitive neuroscience, CBT, and ACT frameworks, then links back to classical Islamic literature.
+- **Secular Practice Mode:** Activated upon explicit request; provides purely evidence-based clinical practices and secular mindfulness.
 
-### Dhikr Practice Guide
-- Lets users select from 12 curated emotional states, or describe their state freely.
-- Presents curated Islamic dhikr/dua (Arabic text, transliteration, translation, full Quranic/Hadith reference) **or** secular evidence-based practices with citations.
-- Generates a warm AI introduction and a personalized note explaining why a given practice fits the user's current state.
+### 2. Dhikr & Evidence-Based Practice Engine
+- **12 Curated Emotional States:** Including Anxiety (*Qalaq*), Grief (*Huzn*), Anger (*Ghadab*), Spiritual Emptiness, Burnout, and Loneliness.
+- **Dynamic AI Emotion Resolver:** If a user expresses their feelings in open-ended natural language, Sakina analyzes the underlying state and maps it to relevant practices.
+- **Dual Practice Tables:**
+  - *Islamic Practice:* Arabic script, transliteration, English translation, authentic Quran/Hadith reference, repetition count, and personalized AI context.
+  - *Secular Practice:* Step-by-step instructions, somatic mechanism, psychological citations, and personalized AI commentary.
 
-### Mood Tracker
-- Logs emotional state and intensity via an MCP tool, persisted to `mood_log.json`.
-- AI-generated reflection synthesizing patterns and gentle next steps.
-- Dashboard view with history and trend context.
+### 3. Mood Tracking & Longitudinal Synthesis
+- **Granular Mood Logging:** Records emotion tags, 1–10 intensity ratings, and journal notes.
+- **AI-Powered Synthesis:** Generates compassionate reflections identifying emotional trajectories, triggers, and growth patterns.
+- **Interactive Analytics:** Frontend dashboard visualizes historical intensity trends and emotional distributions.
 
-### Safety Guardrail System
-A three-tier, hybrid crisis-detection pipeline:
+### 4. Defense-in-Depth Crisis Detection
+- **Deterministic Bypassing:** Explicit suicidal intent or self-harm keywords trigger immediate Tier-3 response without calling the model.
+- **Geolocation-Aware Hotlines:** Dynamically surfaces verified local emergency hotlines (USA, UK, Canada, Pakistan, UAE, International) using IP geolocation.
+- **Automatic Farewell Detection:** Seamlessly identifies closing phrases (*"Allah Hafiz"*, *"Goodbye"*, *"I have to leave"*) and responds with a warm closing supplication or thought.
 
-| Tier | Description | Response |
-|------|-------------|----------|
-| **Mild** | Passive hopelessness, burnout, vague despair | Empathetic acknowledgement + gentle coping nudge; conversation continues |
-| **Moderate** | Active distress, indirect ideation, help-seeking signals | Warm handoff + localized crisis hotline surfaced |
-| **Severe** | Explicit self-harm, suicidal intent, or acute crisis | Full session override — hotline foregrounded, main agent bypassed entirely |
-
-The pipeline runs a fast, deterministic keyword pre-screen first. An explicit severe match short-circuits straight to a hard-coded Tier 3 response with **no LLM in the loop** — no ambiguity, no dependency on model behavior for the highest-stakes case. A moderate match is escalated to an LLM judge for contextual refinement before a final tier and response are chosen.
-
----
-
-## Security
-
-Because the guardrail's LLM judge classifies raw, untrusted user text, it is itself a plausible target for prompt injection — a user could attempt to talk the classifier into downgrading a genuinely risky message. The system is designed with that threat model in mind, using layered, not single-point, defenses in `guardrails.py`:
-
-1. **Deterministic gate before the LLM is ever invoked.** The keyword pre-screen runs first and independently; an explicit severe signal is resolved with a hard-coded response with the LLM fully bypassed (`block_llm=True`), removing the highest-stakes decision from model behavior entirely.
-2. **Prompt isolation for the judge call.** Untrusted user text is length-bounded, stripped of any attempt to forge the prompt's own delimiter boundary, and explicitly framed to the model as data to classify — never as instructions to follow — with the prompt stating outright that any embedded claim to the contrary is itself evidence for a *higher* tier, not a lower one.
-3. **A non-negotiable floor on the judge's output.** The LLM judge is only ever invoked after the keyword pre-screen has already found a moderate signal. If the input also shows markers consistent with an injection attempt, the code enforces that the judge's result cannot resolve *below* that pre-screen tier — regardless of what the model returns. This means a successful injection can, at worst, fail to escalate a message; it cannot suppress a signal the deterministic layer already raised.
-
-This turns the safety classifier from "a prompt we hope the model follows" into a system with a code-level guarantee on its worst-case behavior.
-
----
-
-## Deployability
-
-The current build runs locally (FastAPI + Uvicorn, MCP server as a local stdio subprocess) and does not require a live deployment for evaluation. The intended production path: containerize `FrontendAPI.py` and `server.py` as a Cloud Run service (the MCP server as a sidecar process within the same container, communicating over stdio as it does locally), move `mood_log.json` to a managed store (e.g., Firestore) to support multiple concurrent users instead of a single flat file, and inject `GOOGLE_API_KEY` via Secret Manager rather than a local `.env`. The FastAPI/ADK/MCP boundaries in the current code are already structured to make that move a configuration change rather than a rewrite.
+### 5. Privacy & User Data Sovereignty (GDPR/CCPA)
+- **Google OAuth 2.0:** Secure identity verification without storing passwords.
+- **Full Data Export:** Download all stored mood history and profile logs in JSON format via `GET /api/user/data/export`.
+- **Right to Erasure (Forget Me):** Instantly purge all user records and database logs via `DELETE /api/user/data`.
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **AI Model** | Google Gemini 2.5 Flash |
-| **Agent Framework** | Google Agent Development Kit (ADK) ≥ 2.0.0 |
-| **Tool Protocol** | Model Context Protocol (MCP) via FastMCP |
-| **Backend** | Python 3.11+, FastAPI, Uvicorn |
-| **Frontend** | React 19, Vite 8, Vanilla CSS (JSX) |
-| **Data Validation** | Pydantic v2 |
-| **AI SDK** | google-genai ≥ 1.0.0 |
-| **Environment** | python-dotenv |
-| **Persistence** | JSON flat file (`mood_log.json`) — see Deployability for the production path |
-| **Languages** | Python, JavaScript (JSX) |
+| Domain | Technology / Library | Version | Purpose |
+|:---|:---|:---|:---|
+| **Core AI Agent** | [Google ADK](https://github.com/google/agent-development-kit) | `^2.0.0` | Agent runtime, stateful runners, and session management |
+| **Foundation Model**| Google Gemini 2.5 Flash | — | Fast, low-latency reasoning and empathetic dialogue generation |
+| **Tool Interface** | [FastMCP](https://github.com/jlowin/fastmcp) / `mcp` | `^0.1.0` / `^1.0.0` | Model Context Protocol server over stdio for agent tool execution |
+| **Backend Framework**| [FastAPI](https://fastapi.tiangolo.com/) | `^0.110.0` | Asynchronous REST API, lifespan management, and SPA serving |
+| **ASGI Server** | [Uvicorn](https://www.uvicorn.org/) | `^0.29.0` | High-performance asynchronous Python web server |
+| **Frontend Framework**| [React](https://react.dev/) | `^19.2.7` | Modern declarative component-driven user interface |
+| **Build Tool** | [Vite](https://vitejs.dev/) | `^8.1.0` | Lightning-fast ESM frontend bundling and HMR dev server |
+| **Database** | SQLite 3 | — | Persistent relational storage for user profiles and mood logs |
+| **Authentication** | Google OAuth (`google-auth`, `@react-oauth/google`) | `^2.0.0` | Secure ID token validation and authentication lifecycle |
+| **Validation** | [Pydantic](https://docs.pydantic.dev/) | `^2.0.0` | Strict data validation and schema enforcement |
 
 ---
 
-## Setup & Installation
+## Repository Structure
+
+```
+sakina_agent/
+├── FrontendAPI.py        # Main FastAPI entry point, ADK Runner & MCP Client orchestration
+├── agent.py              # Farewell detection and conversation lifecycle handlers
+├── database.py           # SQLite persistence layer (User data, mood logs, GDPR export/delete)
+├── dhikr.py              # Practice libraries (Islamic & Secular), AI emotion resolver & commentary
+├── guardrails.py         # 3-Tier safety pipeline, prompt injection defense, emergency hotlines
+├── mood_tracker.py       # Mood analytics, longitudinal pattern synthesis, dashboard generators
+├── server.py             # FastMCP stdio server exposing mood_log_tool & mood_history_tool
+├── system_prompt.py      # Core prompt engineering, clinical boundaries, and adaptive persona
+├── tools.py              # Shared tool utilities and helpers
+├── sakina.db             # Relational SQLite database (created on startup)
+├── mood_log.json         # Agent memory file for MCP tool operations
+│
+├── src/                  # React 19 Frontend Application
+│   ├── App.jsx           # Master application shell, tab routing, Chat & Practice UI
+│   ├── moodtab.jsx       # Mood tracking interface, trend charts, and synthesis viewer
+│   ├── SettingsTab.jsx   # User profile controls, theme settings, and GDPR data management
+│   ├── AuthContext.jsx   # React Context for Google Authentication state
+│   ├── GoogleSignIn.jsx  # Google OAuth login component
+│   ├── CookieBanner.jsx  # Privacy consent and cookie banner
+│   ├── PrivacyPolicy.jsx # Comprehensive privacy documentation
+│   ├── TermsOfService.jsx# Clinical disclaimer and terms of service
+│   ├── tokens.js         # Design system tokens (colors, typography, spacing)
+│   ├── App.css           # Component styles and glassmorphism styling
+│   └── index.css         # Global CSS reset and font definitions
+│
+├── dist/                 # Production-built static assets (served by FastAPI)
+├── index.html            # Vite HTML template
+├── vite.config.js        # Vite configuration and API proxy rules
+├── package.json          # Frontend dependencies and npm scripts
+├── requirements.txt      # Python runtime dependencies
+└── README.md             # Project documentation
+```
+
+---
+
+## Getting Started
 
 ### Prerequisites
-- **Python 3.11+** — https://www.python.org/downloads/
-- **Node.js 18+** and **npm** — https://nodejs.org/
-- A **Google AI API Key** with Gemini access — https://aistudio.google.com/app/apikey
 
-### Step 1 — Clone the Repository
+Ensure you have the following installed on your machine:
+- **Python 3.11 or higher** ([Download Python](https://www.python.org/downloads/))
+- **Node.js 18 or higher** and **npm** ([Download Node.js](https://nodejs.org/))
+- A **Google AI Studio API Key** ([Get your Gemini API Key](https://aistudio.google.com/app/apikey))
+- *(Optional)* A **Google OAuth Client ID** for user authentication ([Google Cloud Console](https://console.cloud.google.com/apis/credentials))
+
+---
+
+### Installation & Local Setup
+
+#### 1. Clone the Repository
 ```bash
 git clone https://github.com/Rida-Tariq26/-Sakina-A-Guided-Space-for-Psychological-and-Spiritual-Tranquility.git
 cd -Sakina-A-Guided-Space-for-Psychological-and-Spiritual-Tranquility
 ```
 
-### Step 2 — Set Up the Python Virtual Environment
+#### 2. Configure Python Virtual Environment
 ```bash
+# Create virtual environment
 python -m venv venv
 
-# Windows (PowerShell)
-venv\Scripts\activate
+# Activate on Windows (PowerShell)
+venv\Scripts\Activate.ps1
 
-# macOS / Linux
+# Activate on macOS / Linux
 source venv/bin/activate
 ```
+
+#### 3. Install Python Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 3 — Configure Environment Variables
-Create a `.env` file in the project root:
-```env
-# Required — your Google AI API key (for Gemini 2.5 Flash)
-GOOGLE_API_KEY=your_google_api_key_here
+#### 4. Configure Environment Variables
+Create a `.env` file in the root directory:
+```bash
+cp .env.example .env  # or create manually
+```
 
-# Optional — custom path for the mood log file (defaults to mood_log.json in project root)
+Populate `.env` with your credentials:
+```env
+# Required: Google Gemini API Key
+GOOGLE_API_KEY=your_google_gemini_api_key_here
+
+# Optional: Google OAuth Client ID for User Authentication
+GOOGLE_CLIENT_ID=your_google_oauth_client_id.apps.googleusercontent.com
+VITE_GOOGLE_CLIENT_ID=your_google_oauth_client_id.apps.googleusercontent.com
+
+# Optional: Custom storage location for MCP mood file (default: mood_log.json)
 MOOD_LOG_PATH=mood_log.json
 ```
-**Never commit this file.** Confirm `.env` is listed in `.gitignore` before pushing.
 
-**How to get a Google API Key:**
-1. Go to https://aistudio.google.com/app/apikey
-2. Sign in with your Google account
-3. Click **Create API Key**
-4. Copy the key into `GOOGLE_API_KEY` in your `.env` file
-
-### Step 4 — Install Frontend Dependencies
+#### 5. Install Frontend Dependencies
 ```bash
 npm install
 ```
 
-### Step 5 — Build the Frontend
+---
+
+### Running the Application
+
+You can run Sakina in either **Production Unified Mode** (FastAPI serves built React static assets) or **Full Hot-Reload Development Mode**.
+
+#### Option A: Production Unified Mode (Recommended)
+Build the frontend assets once, and let FastAPI serve both backend APIs and the frontend UI on a single port:
+
 ```bash
+# 1. Build the React SPA
 npm run build
-```
-This compiles the React app into `dist/`, which FastAPI serves automatically at the root URL.
 
-### Step 6 — Run the Application
-```bash
+# 2. Start the FastAPI server
 uvicorn FrontendAPI:app --reload --port 8000
 ```
-Open your browser at **http://localhost:8000**.
+Open your browser at **`http://localhost:8000`**.
 
-### Optional — Frontend Development Mode (Hot Reload)
+---
+
+#### Option B: Development Mode with Live Hot-Reload
+Run the backend and frontend concurrently in two terminal windows:
+
+**Terminal 1 (FastAPI Backend):**
 ```bash
-# Terminal 1 — Backend
+# Ensure venv is activated
 uvicorn FrontendAPI:app --reload --port 8000
+```
 
-# Terminal 2 — Frontend dev server (proxies /api → :8000)
+**Terminal 2 (Vite Dev Server):**
+```bash
 npm run dev
 ```
-Then visit **http://localhost:5173**.
+Open your browser at **`http://localhost:5173`** (Vite automatically proxies API requests to port `8000`).
 
 ---
 
-## Environment Variables Reference
+## Environment Variables
 
 | Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `GOOGLE_API_KEY` | Yes | — | Google AI API key for Gemini 2.5 Flash |
-| `MOOD_LOG_PATH` | No | `mood_log.json` | File path for persistent mood history |
+|:---|:---:|:---|:---|
+| `GOOGLE_API_KEY` | **Yes** | — | Google AI Studio key enabling Gemini 2.5 Flash |
+| `GOOGLE_CLIENT_ID` | No | — | Backend Google OAuth 2.0 audience verification |
+| `VITE_GOOGLE_CLIENT_ID` | No | — | Frontend Google OAuth client initialization |
+| `MOOD_LOG_PATH` | No | `mood_log.json` | Path to persistent mood log file for FastMCP |
+| `OTEL_SDK_DISABLED` | No | `true` | Suppresses OpenTelemetry telemetry logging |
 
 ---
 
-## API Endpoints
+## API Reference
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/greeting` | Sakina's personalized opening message |
-| POST | `/api/chat` | User message → AI response (guardrail + farewell detection applied) |
-| POST | `/api/dhikr` | Curated practices + AI commentary for a given emotion and mode |
-| POST | `/api/mood` | Log a mood entry and receive an AI-generated reflection |
-| GET | `/api/mood` | Mood dashboard (history, trends, AI insight) |
-| GET | `/docs` | Auto-generated FastAPI interactive API documentation |
+Interactive Swagger documentation is available at **`http://localhost:8000/docs`**.
+
+### Authentication & User Data
+
+#### `POST /api/auth/verify`
+Verifies a Google OAuth ID token, provisions the user profile in SQLite, and returns session data.
+```json
+// Request
+{
+  "token": "eyJhbGciOiJSUzI1NiIsImtpZCI..."
+}
+
+// Response (200 OK)
+{
+  "sub": "109876543210987654321",
+  "email": "user@example.com",
+  "name": "Fatima Zahra",
+  "picture": "https://lh3.googleusercontent.com/a/..."
+}
+```
+
+#### `GET /api/user/data/export`
+Exports all stored mood entries and profile metadata for the authenticated user.
+- **Header:** `X-User-Id: <user_sub>`
+
+#### `DELETE /api/user/data`
+Permanently purges the user's data from the SQLite database.
+- **Header:** `X-User-Id: <user_sub>`
 
 ---
 
-## Course Concepts Demonstrated
+### Core Companion Endpoints
 
-| Concept | Where |
-|---|---|
-| Agent (ADK) | `FrontendAPI.py` — single `Agent` + `Runner`, instruction-driven mode switching |
-| MCP Server | `server.py` (FastMCP) + dynamic tool discovery/wrapping in `FrontendAPI.py` |
-| Security | `guardrails.py` — deterministic gate, prompt isolation, non-negotiable output floor against injection |
+#### `POST /api/greeting`
+Generates an opening empathetic greeting customized to the session.
+```json
+// Response
+{
+  "response": "Assalam-o-Alaikum. I am Sakina — a space for stillness. Whatever is weighing on your heart today, you are welcome to share it here. What's on your mind?"
+}
+```
+
+#### `POST /api/chat`
+Dispatches a user message through the safety guardrail pipeline and Google ADK Agent.
+```json
+// Request
+{
+  "message": "I feel overwhelmed with work deadlines and my heart feels constricted."
+}
+
+// Response
+{
+  "response": "I hear how heavy things feel right now... Take a gentle breath. Let us remember that you are only asked to carry one moment at a time..."
+}
+```
+
+#### `POST /api/dhikr`
+Retrieves curated Islamic or secular exercises with personalized AI commentary for an emotional state.
+```json
+// Request
+{
+  "emotion": "anxiety",
+  "free_text": "My chest feels tight and I cannot focus.",
+  "mode": "islamic"
+}
+
+// Response
+{
+  "emotion": "anxiety",
+  "commentary": "When anxiety tightens the chest, the Prophet (ﷺ) turned to words that surrender the weight back to the Sustainer.",
+  "practices": [
+    {
+      "arabic": "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ",
+      "transliteration": "Hasbunallahu wa ni'mal-wakeel",
+      "translation": "Allah is sufficient for us, and He is the best Disposer of affairs.",
+      "reference": "Surah Ali 'Imran (3:173)",
+      "repetitions": "Repeat 7 to 33 times slowly with full exhalations",
+      "personalization": "This remembrance directly counters the feeling of having to solve everything alone right now."
+    }
+  ]
+}
+```
+
+#### `POST /api/mood` & `GET /api/mood`
+Logs mood snapshots and retrieves synthesized analytical trends.
+```json
+// POST /api/mood Request
+{
+  "emotion": "grief",
+  "intensity": 7,
+  "note": "Missing my late grandmother today.",
+  "mode": "islamic"
+}
+```
 
 ---
 
-## Project Philosophy
+## Security & Injection Mitigation
 
-Sakina is built on the belief that soul, mind, and behavior are deeply connected, and that a full-spectrum approach to emotional wellbeing honors both dimensions of the human experience. Muraqabah (mindful self-awareness) maps onto mindfulness-based stress reduction. Dhikr interrupts rumination the same way cognitive defusion does in ACT. Tawakkul shares its mechanism with acceptance in ACT. Sakina makes those connections visible, felt, and actionable — not as a novelty, but as a genuine bridge for a large, underserved user base.
+Because Sakina's guardrail classifier processes raw, untrusted user text, it is hardened against adversarial manipulation:
 
-> "And We send down of the Quran that which is healing and mercy for the believers." — Surah Al-Isra, 17:82
+1. **Deterministic Short-Circuit (Pre-LLM Gate):**
+   Explicit crisis indicators bypass the LLM completely (`block_llm=True`), ensuring severe risks are handled deterministically without model latency or hallucination risks.
+2. **Strict Delimiter Isolation:**
+   Untrusted user input is encapsulated inside unique, isolated markdown XML-style boundaries (`<untrusted_user_text>`). Any attempt within user text to forge closing delimiters is stripped prior to LLM evaluation.
+3. **Non-Negotiable Safety Floor:**
+   If an incoming prompt contains adversarial injection markers (e.g., *"Ignore previous safety instructions"*), the classifier enforces a hard-coded floor preventing the classification from being downgraded below `MODERATE`.
+4. **Isolated Inference Sessions:**
+   Guardrail evaluations and farewell checks run in ephemeral, isolated session runners, preventing prompt poisoning from leaking into the user's main chat session.
+
+---
+
+## Philosophical & Psychological Foundations
+
+```
+                            ┌─────────────────────────────────────────┐
+                            │               SAKINA CORE               │
+                            │   Psychological & Spiritual Wellbeing   │
+                            └────────────────────┬────────────────────┘
+                                                 │
+                   ┌─────────────────────────────┴─────────────────────────────┐
+                   ▼                                                           ▼
+    ┌─────────────────────────────┐                             ┌─────────────────────────────┐
+    │     ISLAMIC PSYCHOLOGY      │                             │   CONTEMPORARY PSYCHOLOGY   │
+    │      (Ilm al-Nafs)          │                             │    (Evidence-Based Care)    │
+    ├─────────────────────────────┤                             ├─────────────────────────────┤
+    │ • Al-Ghazali (Ihya)         │ ◄─── Cognitive Restruct ──► │ • Cognitive Behavioral (CBT)│
+    │ • Ibn al-Qayyim (Fawa'id)   │ ◄─── Defusion / Mindful ──► │ • Acceptance & Commit (ACT) │
+    │ • Abu Zayd al-Balkhi        │ ◄─── Mind-Body Somatics ──► │ • Polyvagal / Neuroscience  │
+    │ • Muraqabah / Tawakkul      │ ◄─── Radical Acceptance ──► │ • Dialectical Behavior (DBT)│
+    └─────────────────────────────┘                             └─────────────────────────────┘
+```
+
+Sakina builds upon the pioneer work of **Abu Zayd al-Balkhi** (9th century physician and author of *Sustenance of the Soul* / *Masalih al-Abdan wa al-Anfus*), who first documented the mutual influence between mental and physical health (*Tibb al-Nafs*). Sakina pairs these historic insights with 21st-century clinical techniques to ensure accessible, culturally congruent emotional care.
+
+---
+
+## Production Deployment Roadmap
+
+To deploy Sakina to scalable cloud infrastructure:
+
+- [x] **Containerization:** Package FastAPI, MCP worker, and pre-built frontend into a lightweight Docker container.
+- [x] **Cloud Run / Container Engine:** Deploy as a single stateless autoscaling Cloud Run container communicating over stdio internally.
+- [ ] **Managed Cloud SQL / Firestore:** Migrate SQLite (`sakina.db`) and `mood_log.json` to Cloud SQL (PostgreSQL) or Google Cloud Firestore for multi-tenant horizontal scaling.
+- [ ] **Secret Manager:** Automate rotation of `GOOGLE_API_KEY` and OAuth secrets using GCP Secret Manager.
+- [ ] **Observability:** Integrate structured JSON logging and OpenTelemetry tracing for agent turn latencies.
 
 ---
 
 ## Disclaimer
 
-Sakina is **not a substitute for professional mental health care**. It is a supportive companion, not a therapist or a crisis service. If you or someone you know is in crisis, please contact a licensed mental health professional or a crisis helpline immediately.
+> **IMPORTANT MEDICAL & SAFETY NOTICE**  
+> Sakina is an **AI-powered emotional and spiritual wellness companion**, not a licensed medical provider, psychiatrist, or clinical therapy service. It is not designed to diagnose, treat, or cure psychiatric disorders or acute medical emergencies.
+>
+> **If you or someone you know is in immediate crisis or experiencing thoughts of self-harm, please contact local emergency services immediately:**
+> - **United States:** Call or text `988` (Suicide & Crisis Lifeline)
+> - **United Kingdom:** Call `111` (NHS) or `116 123` (Samaritans)
+> - **Canada:** Call or text `988`
+> - **International Resources:** [https://findahelpline.com/](https://findahelpline.com/)
 
 ---
 
-## License
+## License & Acknowledgments
 
-Developed as a capstone for the Kaggle x Google 5-Day AI Agents Intensive Course. All rights reserved.
+This project is licensed under the **MIT License**.
+
+- Built with ❤️ for the **Kaggle x Google 5-Day AI Agents Intensive Course**.
+- Powered by **Google Gemini 2.5 Flash** and **Google Agent Development Kit (ADK)**.
+- Gratitude to classical Islamic scholars and contemporary clinical researchers whose work bridges mind, heart, and spirit.
 
 ---
 
-*Made with intention. May it bring you tranquility.*
+*Made with intention. May it bring you tranquility (سكينة).*

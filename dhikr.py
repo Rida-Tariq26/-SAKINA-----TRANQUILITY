@@ -660,7 +660,7 @@ async def main():
 
     commentary_agent = Agent(
         name="SakinaDhikrGuide",
-        model="gemini-2.5-flash",
+        model=os.environ.get("GEMINI_MODEL", "gemini-2.5-flash"),
         instruction=system_prompt,
     )
 

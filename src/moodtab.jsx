@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { apiFetch } from "./apiKeyHelper";
 
 // ─────────────────────────────────────────────
 // MOOD TAB
@@ -63,7 +64,7 @@ const MoodTab = ({ isDark, tokensRef }) => {
 
     useEffect(() => {
         let isMounted = true;
-        fetch(`/api/mood?mode=${mode}`)
+        apiFetch(`/api/mood?mode=${mode}`)
             .then((res) => res.json())
             .then((data) => {
                 if (isMounted) setDashboard(data);
@@ -83,7 +84,7 @@ const MoodTab = ({ isDark, tokensRef }) => {
         if (!emotion || submitting) return;
         setSubmitting(true);
         try {
-            const res = await fetch("/api/mood", {
+            const res = await apiFetch("/api/mood", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ emotion, intensity, note, mode }),

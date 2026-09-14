@@ -1,52 +1,14 @@
 import { useState, useEffect, useRef } from "react";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import { AuthProvider, useAuth } from "./AuthContext";
 import MoodTab from "./MoodTab";
-// ─────────────────────────────────────────────
-// DESIGN TOKENS
-// ─────────────────────────────────────────────
-const tokens = {
-  dark: {
-    bgBase: "#07111C",
-    bgMid: "#0D1B2A",
-    bgDeep: "#050E17",
-    glass: "rgba(13,27,42,0.55)",
-    glassBright: "rgba(25,45,65,0.60)",
-    glassCard: "rgba(18,35,52,0.70)",
-    border: "rgba(196,132,90,0.18)",
-    borderGlow: "rgba(196,132,90,0.45)",
-    innerLight: "rgba(255,255,255,0.05)",
-    glow: "#C4845A",
-    gold: "#E8B97A",
-    goldSoft: "#D4A06A",
-    textPrimary: "#F0E6D3",
-    textSecond: "#9DB4C0",
-    textMuted: "#4A6878",
-    userBubble: "rgba(30,58,82,0.75)",
-    aiBubble: "rgba(13,27,42,0.80)",
-    shadow: "0 8px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3)",
-    shadowGlow: "0 0 40px rgba(196,132,90,0.12), 0 8px 32px rgba(0,0,0,0.45)",
-  },
-  light: {
-    bgBase: "#E8DCCB",
-    bgMid: "#F0E6D4",
-    bgDeep: "#DDD0BB",
-    glass: "rgba(255,253,248,0.62)",
-    glassBright: "rgba(255,253,248,0.78)",
-    glassCard: "rgba(255,253,248,0.82)",
-    border: "rgba(160,98,60,0.18)",
-    borderGlow: "rgba(160,98,60,0.42)",
-    innerLight: "rgba(255,255,255,0.55)",
-    glow: "#A0622A",
-    gold: "#8A4E1A",
-    goldSoft: "#B07040",
-    textPrimary: "#1C2E40",
-    textSecond: "#4A6272",
-    textMuted: "#8A9FAA",
-    userBubble: "rgba(220,200,175,0.80)",
-    aiBubble: "rgba(255,253,248,0.88)",
-    shadow: "0 8px 32px rgba(100,70,40,0.18), 0 2px 8px rgba(100,70,40,0.10)",
-    shadowGlow: "0 0 40px rgba(160,98,60,0.10), 0 8px 32px rgba(100,70,40,0.18)",
-  },
-};
+import GoogleSignIn from "./GoogleSignIn";
+import PrivacyPolicy from "./PrivacyPolicy";
+import TermsOfService from "./TermsOfService";
+import CookieBanner from "./CookieBanner";
+import SettingsTab from "./SettingsTab";
+import { apiFetch } from "./apiKeyHelper";
+import { tokens } from "./tokens";
 
 // ─────────────────────────────────────────────
 // GLOBAL STYLES
@@ -284,8 +246,9 @@ const ThemeToggle = ({ isDark, onToggle }) => {
 // ─────────────────────────────────────────────
 // LANDING PAGE
 // ─────────────────────────────────────────────
-const LandingPage = ({ isDark, onEnter, onToggleTheme }) => {
+const LandingPage = ({ isDark, onEnter, onToggleTheme, onNavigate }) => {
   const t = isDark ? tokens.dark : tokens.light;
+  const { user } = useAuth();
   const [btnHover, setBtnHover] = useState(false);
 
   return (
@@ -343,8 +306,58 @@ const LandingPage = ({ isDark, onEnter, onToggleTheme }) => {
         zIndex: 1,
       }} />
 
-      {/* Theme toggle */}
-      <div style={{ position: "absolute", top: "1.5rem", right: "1.5rem", zIndex: 10 }}>
+      {/* Top right actions */}
+      <div style={{
+        position: "absolute",
+        top: "1.5rem",
+        right: "1.5rem",
+        zIndex: 10,
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+      }}>
+        {user ? (
+          <button
+            onClick={() => onEnter()}
+            style={{
+              background: t.glass,
+              backdropFilter: "blur(12px)",
+              border: `1px solid ${t.border}`,
+              borderRadius: "20px",
+              padding: "6px 14px",
+              color: t.glow,
+              fontSize: "0.78rem",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
+            {user.picture ? (
+              <img src={user.picture} alt="" style={{ width: "18px", height: "18px", borderRadius: "50%" }} />
+            ) : "✦"}
+            <span>{user.name ? user.name.split(" ")[0] : "Account"}</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => onNavigate("login")}
+            style={{
+              background: t.glass,
+              backdropFilter: "blur(12px)",
+              border: `1px solid ${t.border}`,
+              borderRadius: "20px",
+              padding: "6px 14px",
+              color: t.textSecond,
+              fontSize: "0.78rem",
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = t.borderGlow; e.currentTarget.style.color = t.glow; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.color = t.textSecond; }}
+          >
+            Sign In
+          </button>
+        )}
         <ThemeToggle isDark={isDark} onToggle={onToggleTheme} />
       </div>
 
@@ -415,7 +428,13 @@ const LandingPage = ({ isDark, onEnter, onToggleTheme }) => {
         {/* CTA Button */}
         <button
           className="fade-up-4"
-          onClick={onEnter}
+          onClick={() => {
+            if (user) {
+              onEnter();
+            } else {
+              onNavigate("login");
+            }
+          }}
           onMouseEnter={() => setBtnHover(true)}
           onMouseLeave={() => setBtnHover(false)}
           style={{
@@ -477,6 +496,47 @@ const LandingPage = ({ isDark, onEnter, onToggleTheme }) => {
             </div>
           ))}
         </div>
+
+        {/* Legal links footer */}
+        <div className="fade-up-4" style={{
+          display: "flex",
+          gap: "1.5rem",
+          marginTop: "2.2rem",
+          fontSize: "0.72rem",
+          color: t.textMuted,
+        }}>
+          <button
+            onClick={() => onNavigate("privacy")}
+            style={{
+              background: "none",
+              border: "none",
+              color: "inherit",
+              cursor: "pointer",
+              fontSize: "inherit",
+              transition: "color 0.2s",
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = t.glow}
+            onMouseLeave={e => e.currentTarget.style.color = t.textMuted}
+          >
+            Privacy Policy
+          </button>
+          <span>·</span>
+          <button
+            onClick={() => onNavigate("terms")}
+            style={{
+              background: "none",
+              border: "none",
+              color: "inherit",
+              cursor: "pointer",
+              fontSize: "inherit",
+              transition: "color 0.2s",
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = t.glow}
+            onMouseLeave={e => e.currentTarget.style.color = t.textMuted}
+          >
+            Terms of Service
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -501,7 +561,7 @@ const TypingIndicator = ({ t }) => (
 // ─────────────────────────────────────────────
 // CHAT TAB
 // ─────────────────────────────────────────────
-const ChatTab = ({ isDark }) => {
+const ChatTab = ({ isDark, onNavigate }) => {
   const t = isDark ? tokens.dark : tokens.light;
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -510,17 +570,16 @@ const ChatTab = ({ isDark }) => {
   const [inputFocused, setInputFocused] = useState(false);
   const bottomRef = useRef(null);
 
-
   useEffect(() => {
     const fetchGreeting = async () => {
       try {
-        const res = await fetch("/api/greeting", { method: "POST" });
+        const res = await apiFetch("/api/greeting", { method: "POST" });
         const data = await res.json();
         setMessages([{ role: "assistant", text: data.response }]);
       } catch {
         setMessages([{
           role: "assistant",
-          text: "Assalam-o-Alaikum\n\nI am Sakina — a space for stillness. What's on your mind?",
+          text: "Assalam-o-Alaikum\n\nI am Sakina — a space for stillness. Whatever is on your heart today, you are welcome to share it here.\n\nWhat's on your mind?",
         }]);
       } finally {
         setGreetingLoading(false);
@@ -531,8 +590,6 @@ const ChatTab = ({ isDark }) => {
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
 
-
-
   const sendMessage = async () => {
     const text = input.trim();
     if (!text || loading) return;
@@ -540,13 +597,31 @@ const ChatTab = ({ isDark }) => {
     setMessages(prev => [...prev, { role: "user", text }]);
     setLoading(true);
     try {
-      const res = await fetch("/api/chat", {
+      const res = await apiFetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text }),
       });
       const data = await res.json();
-      setMessages(prev => [...prev, { role: "assistant", text: data.response }]);
+      if (!res.ok) {
+        if (res.status === 401) {
+          setMessages(prev => [...prev, {
+            role: "assistant",
+            isKeyNotice: true,
+            text: "To chat with Sakina with uninterrupted daily peace of mind, please add your free personal Google Gemini API Key in Settings.",
+          }]);
+        } else if (res.status === 429) {
+          setMessages(prev => [...prev, {
+            role: "assistant",
+            isKeyNotice: true,
+            text: "Your Gemini API Key has exceeded its daily rate or quota limit. In Settings, you can switch to Gemini 2.0 Flash (1,500 free queries/day) or check your key.",
+          }]);
+        } else {
+          setMessages(prev => [...prev, { role: "assistant", text: data.detail || "I'm listening, but encountered an error. Please try again." }]);
+        }
+      } else {
+        setMessages(prev => [...prev, { role: "assistant", text: data.response }]);
+      }
     } catch {
       setMessages(prev => [...prev, { role: "assistant", text: "I'm here — there seems to be a connection issue. Please try again." }]);
     } finally {
@@ -647,7 +722,29 @@ const ChatTab = ({ isDark }) => {
               whiteSpace: "pre-wrap",
               fontWeight: 300,
             }}>
-              {msg.text}
+              <div>{msg.text}</div>
+              {msg.isKeyNotice && onNavigate && (
+                <button
+                  onClick={() => onNavigate("settings")}
+                  style={{
+                    marginTop: "10px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "7px 14px",
+                    borderRadius: "8px",
+                    background: `linear-gradient(135deg, ${t.glow}, ${t.goldSoft})`,
+                    border: "none",
+                    color: isDark ? "#07111C" : "#fff",
+                    fontSize: "0.78rem",
+                    fontWeight: 500,
+                    cursor: "pointer",
+                    boxShadow: `0 2px 10px rgba(196,132,90,0.3)`,
+                  }}
+                >
+                  ⚙️ Open Settings to Add Key
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -795,7 +892,7 @@ const DhikrTab = ({ isDark }) => {
     setLoading(true);
     setStep("result");
     try {
-      const res = await fetch("/api/dhikr", {
+      const res = await apiFetch("/api/dhikr", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ emotion: selected, mode, free_text: freeText }),
@@ -980,13 +1077,14 @@ const DhikrTab = ({ isDark }) => {
 // ─────────────────────────────────────────────
 // APP PAGE
 // ─────────────────────────────────────────────
-const AppPage = ({ isDark, onToggleTheme }) => {
+const AppPage = ({ isDark, onToggleTheme, onNavigate, onLogout }) => {
   const t = isDark ? tokens.dark : tokens.light;
   const [tab, setTab] = useState("chat");
   const navItems = [
     { key: "chat", label: "Chat", icon: "◎" },
     { key: "dhikr", label: "Dhikr", icon: "✦" },
     { key: "mood", label: "Mood Tracker", icon: "❀" },
+    { key: "settings", label: "Settings", icon: "⚙" },
   ];
 
   return (
@@ -1010,7 +1108,10 @@ const AppPage = ({ isDark, onToggleTheme }) => {
         borderRadius: 0,
       }}>
         {/* Logo in sidebar */}
-        <div style={{ marginBottom: "2rem", paddingLeft: "0.3rem" }}>
+        <div
+          onClick={() => onNavigate("landing")}
+          style={{ marginBottom: "2rem", paddingLeft: "0.3rem", cursor: "pointer" }}
+        >
           <SakinaLogo size={52} color={t.gold} style={{ marginBottom: "4px" }} />
           <div className="display" style={{
             fontSize: "1.25rem",
@@ -1080,9 +1181,10 @@ const AppPage = ({ isDark, onToggleTheme }) => {
         </div>
 
         <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-          {tab === "chat" && <ChatTab isDark={isDark} />}
-          {tab === "dhikr" && <DhikrTab isDark={isDark} />}
-          {tab === "mood" && <MoodTab isDark={isDark} tokensRef={tokens} />}
+          {tab === "chat" && <ChatTab isDark={isDark} onNavigate={setTab} />}
+          {tab === "dhikr" && <DhikrTab isDark={isDark} onNavigate={setTab} />}
+          {tab === "mood" && <MoodTab isDark={isDark} tokensRef={tokens} onNavigate={setTab} />}
+          {tab === "settings" && <SettingsTab isDark={isDark} onNavigate={onNavigate} onLogout={onLogout} />}
         </div>
       </div>
     </div>
@@ -1092,16 +1194,62 @@ const AppPage = ({ isDark, onToggleTheme }) => {
 // ─────────────────────────────────────────────
 // ROOT
 // ─────────────────────────────────────────────
-export default function App() {
+function AppContent() {
   const [isDark, setIsDark] = useState(true);
   const [page, setPage] = useState("landing");
+  const { user } = useAuth();
+
   return (
     <>
       <GlobalStyles isDark={isDark} />
-      {page === "landing"
-        ? <LandingPage isDark={isDark} onEnter={() => setPage("app")} onToggleTheme={() => setIsDark(d => !d)} />
-        : <AppPage isDark={isDark} onToggleTheme={() => setIsDark(d => !d)} />
-      }
+      {page === "landing" && (
+        <LandingPage
+          isDark={isDark}
+          onEnter={() => setPage("app")}
+          onToggleTheme={() => setIsDark(d => !d)}
+          onNavigate={setPage}
+        />
+      )}
+      {page === "login" && (
+        <GoogleSignIn
+          isDark={isDark}
+          onSuccess={() => setPage("app")}
+          onBack={() => setPage("landing")}
+          onNavigate={setPage}
+        />
+      )}
+      {page === "privacy" && (
+        <PrivacyPolicy
+          isDark={isDark}
+          onBack={() => setPage(user ? "app" : "landing")}
+        />
+      )}
+      {page === "terms" && (
+        <TermsOfService
+          isDark={isDark}
+          onBack={() => setPage(user ? "app" : "landing")}
+        />
+      )}
+      {page === "app" && (
+        <AppPage
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(d => !d)}
+          onNavigate={setPage}
+          onLogout={() => setPage("landing")}
+        />
+      )}
+      <CookieBanner isDark={isDark} />
     </>
+  );
+}
+
+export default function App() {
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+  return (
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </GoogleOAuthProvider>
   );
 }

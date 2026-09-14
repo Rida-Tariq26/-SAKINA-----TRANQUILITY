@@ -1,0 +1,16 @@
+﻿node_modules
+__pycache__
+*.pyc
+.git
+.gitignore
+.env
+*.env
+sakina.db
+*.db
+*.sqlite
+*.sqlite3
+venv
+.venv
+dist
+.vscode
+.idea

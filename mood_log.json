@@ -10,5 +10,17 @@
     "state": "loneliness",
     "intensity": 6,
     "note": "feeling pressurized and overwhelmed too"
+  },
+  {
+    "timestamp": "2026-07-06T09:04:03.194184",
+    "state": "hopelessness",
+    "intensity": 6,
+    "note": ""
+  },
+  {
+    "timestamp": "2026-08-14T15:28:05.964787",
+    "state": "loneliness",
+    "intensity": 10,
+    "note": "because no one cares"
   }
 ]
