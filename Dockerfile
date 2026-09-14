@@ -14,7 +14,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PORT=8000
 
-# Install system dependencies if required
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
@@ -29,5 +29,5 @@ COPY --from=frontend-builder /app/dist ./dist
 
 EXPOSE 8000
 
-# Run FastAPI backend with Uvicorn
-CMD ["sh", "-c", "uvicorn FrontendAPI:app --host 0.0.0.0 --port "]
+# Run FastAPI backend using python runner (handles PORT safely)
+CMD ["python", "run_server.py"]
