@@ -14,9 +14,6 @@ export default function GoogleSignIn({ isDark, onSuccess, onBack, onNavigate }) 
   const [error, setError]                 = useState("");
   const [busy, setBusy]                   = useState(false);
 
-  const rawClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
-  const isClientIdMissing = !rawClientId || rawClientId.trim() === "" || rawClientId.includes("your_google_oauth_client_id");
-
   const handleCredential = async (credentialResponse) => {
     if (!termsAccepted) {
       setError("Please accept the Terms of Service to continue.");
@@ -179,24 +176,6 @@ export default function GoogleSignIn({ isDark, onSuccess, onBack, onNavigate }) 
           </span>
         </div>
 
-        {/* Missing Client ID warning banner */}
-        {isClientIdMissing && (
-          <div style={{
-            background: "rgba(232,185,122,0.12)",
-            border: `1px solid ${t.borderGlow}`,
-            borderRadius: "8px",
-            padding: "10px 14px",
-            marginBottom: "1.2rem",
-            fontSize: "0.78rem",
-            color: t.gold,
-            textAlign: "left",
-            lineHeight: 1.5,
-          }}>
-            <strong>⚠️ Google OAuth Setup Required</strong><br />
-            <code>VITE_GOOGLE_CLIENT_ID</code> is missing in your environment configuration. Please set it in your <code>.env</code> file.
-          </div>
-        )}
-
         {/* Error message */}
         {error && (
           <div style={{
@@ -213,8 +192,8 @@ export default function GoogleSignIn({ isDark, onSuccess, onBack, onNavigate }) 
 
         {/* Google Login Button */}
         <div style={{
-          opacity: termsAccepted && !busy && !isClientIdMissing ? 1 : 0.45,
-          pointerEvents: termsAccepted && !busy && !isClientIdMissing ? "auto" : "none",
+          opacity: termsAccepted && !busy ? 1 : 0.45,
+          pointerEvents: termsAccepted && !busy ? "auto" : "none",
           transition: "opacity 0.25s ease",
           display: "flex",
           justifyContent: "center",
