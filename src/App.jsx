@@ -1197,7 +1197,15 @@ const AppPage = ({ isDark, onToggleTheme, onNavigate, onLogout }) => {
 function AppContent() {
   const [isDark, setIsDark] = useState(true);
   const [page, setPage] = useState("landing");
+  const [previousPage, setPreviousPage] = useState("landing");
   const { user } = useAuth();
+
+  const handleNavigate = (targetPage) => {
+    if (targetPage === "privacy" || targetPage === "terms") {
+      setPreviousPage(page);
+    }
+    setPage(targetPage);
+  };
 
   return (
     <>
@@ -1207,7 +1215,7 @@ function AppContent() {
           isDark={isDark}
           onEnter={() => setPage("app")}
           onToggleTheme={() => setIsDark(d => !d)}
-          onNavigate={setPage}
+          onNavigate={handleNavigate}
         />
       )}
       {page === "login" && (
@@ -1215,26 +1223,26 @@ function AppContent() {
           isDark={isDark}
           onSuccess={() => setPage("app")}
           onBack={() => setPage("landing")}
-          onNavigate={setPage}
+          onNavigate={handleNavigate}
         />
       )}
       {page === "privacy" && (
         <PrivacyPolicy
           isDark={isDark}
-          onBack={() => setPage(user ? "app" : "landing")}
+          onBack={() => setPage(previousPage || (user ? "app" : "landing"))}
         />
       )}
       {page === "terms" && (
         <TermsOfService
           isDark={isDark}
-          onBack={() => setPage(user ? "app" : "landing")}
+          onBack={() => setPage(previousPage || (user ? "app" : "landing"))}
         />
       )}
       {page === "app" && (
         <AppPage
           isDark={isDark}
           onToggleTheme={() => setIsDark(d => !d)}
-          onNavigate={setPage}
+          onNavigate={handleNavigate}
           onLogout={() => setPage("landing")}
         />
       )}

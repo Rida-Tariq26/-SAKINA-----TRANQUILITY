@@ -106,46 +106,75 @@ export default function GoogleSignIn({ isDark, onSuccess, onBack, onNavigate }) 
         }} />
 
         {/* Terms checkbox */}
-        <label style={{
+        <div style={{
           display: "flex",
           alignItems: "flex-start",
           gap: "10px",
-          cursor: "pointer",
           marginBottom: "1.6rem",
           textAlign: "left",
         }}>
-          <div style={{
-            width: "18px", height: "18px",
-            flexShrink: 0,
-            borderRadius: "4px",
-            border: `1.5px solid ${termsAccepted ? t.glow : t.border}`,
-            background: termsAccepted ? `${t.glow}22` : "transparent",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            transition: "all 0.2s ease",
-            marginTop: "1px",
-            cursor: "pointer",
-          }} onClick={() => setTermsAccepted(v => !v)}>
+          <button
+            type="button"
+            role="checkbox"
+            aria-checked={termsAccepted}
+            aria-label="Agree to Terms of Service and Privacy Policy"
+            style={{
+              width: "18px",
+              height: "18px",
+              flexShrink: 0,
+              borderRadius: "4px",
+              border: `1.5px solid ${termsAccepted ? t.glow : t.border}`,
+              background: termsAccepted ? `${t.glow}22` : "transparent",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.2s ease",
+              marginTop: "1px",
+              cursor: "pointer",
+              padding: 0,
+            }}
+            onClick={() => setTermsAccepted(v => !v)}
+          >
             {termsAccepted && (
               <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
                 <path d="M1 4l3 3 5-6" stroke={t.glow} strokeWidth="1.8"
                   strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             )}
-          </div>
+          </button>
           <span style={{ fontSize: "0.78rem", color: t.textSecond, lineHeight: 1.65 }}>
-            I agree to Sakina's{" "}
-            <button onClick={() => onNavigate("terms")} style={{
-              background: "none", border: "none", padding: 0,
-              color: t.glow, fontSize: "inherit", cursor: "pointer",
-              textDecoration: "underline",
-            }}>Terms of Service</button>{" "}and{" "}
-            <button onClick={() => onNavigate("privacy")} style={{
-              background: "none", border: "none", padding: 0,
-              color: t.glow, fontSize: "inherit", cursor: "pointer",
-              textDecoration: "underline",
-            }}>Privacy Policy</button>
+            <span
+              onClick={() => setTermsAccepted(v => !v)}
+              style={{ cursor: "pointer", userSelect: "none" }}
+            >
+              I agree to Sakina's{" "}
+            </span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onNavigate("terms");
+              }}
+              style={{
+                background: "none", border: "none", padding: 0,
+                color: t.glow, fontSize: "inherit", cursor: "pointer",
+                textDecoration: "underline",
+              }}
+            >Terms of Service</button>{" "}and{" "}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onNavigate("privacy");
+              }}
+              style={{
+                background: "none", border: "none", padding: 0,
+                color: t.glow, fontSize: "inherit", cursor: "pointer",
+                textDecoration: "underline",
+              }}
+            >Privacy Policy</button>
           </span>
-        </label>
+        </div>
 
         {/* Error message */}
         {error && (
