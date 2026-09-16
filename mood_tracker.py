@@ -12,6 +12,12 @@ from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
 
+from database import (
+    add_mood_log as db_add_mood_log,
+    get_recent_mood_logs as db_get_recent_mood_logs,
+    get_all_mood_logs as db_get_all_mood_logs,
+)
+
 load_dotenv()
 
 APP_NAME = "SakinaMood"
@@ -42,51 +48,34 @@ NEGATIVE_EMOTIONS = {
 # SECTION 2: PERSISTENCE LAYER
 # ─────────────────────────────────────────────
 
-def _load_log() -> list:
-    if not os.path.exists(MOOD_LOG_FILE):
-        return []
-    with open(MOOD_LOG_FILE, "r") as f:
-        try:
-            return json.load(f)
-        except json.JSONDecodeError:
-            return []
+def _load_log(user_id: str = "default_user") -> list:
+    return db_get_all_mood_logs(user_id=user_id)
 
 
 def _save_log(log: list) -> None:
-    with open(MOOD_LOG_FILE, "w") as f:
-        json.dump(log, f, indent=2)
+    pass
 
 
 # ─────────────────────────────────────────────
 # SECTION 3: CORE LOGGING TOOLS
 # ─────────────────────────────────────────────
 
-def log_mood_tool(emotional_state: str, intensity: int, note: str = "") -> str:
-    """Logs a single mood entry with timestamp, state, intensity (1-10), and an optional note."""
+def log_mood_tool(emotional_state: str, intensity: int, note: str = "", user_id: str = "default_user") -> str:
+    """Logs a single mood entry for this user with timestamp, state, intensity (1-10), and an optional note."""
     state = emotional_state.strip().lower()
     intensity = max(1, min(10, int(intensity)))
+    note_clean = note.strip()
 
-    entry = {
-        "timestamp": datetime.datetime.now().isoformat(),
-        "state": state,
-        "intensity": intensity,
-        "note": note.strip(),
-    }
-
-    log = _load_log()
-    log.append(entry)
-    _save_log(log)
-
+    db_add_mood_log(user_id=user_id, state=state, intensity=intensity, note=note_clean)
     return f"Logged: {state} (intensity {intensity}/10)."
 
 
-def get_recent_entries_tool(limit: int = 7) -> str:
-    """Returns a human-readable summary of the most recent mood entries."""
-    log = _load_log()
-    if not log:
+def get_recent_entries_tool(limit: int = 7, user_id: str = "default_user") -> str:
+    """Returns a human-readable summary of the most recent mood entries for this user."""
+    recent = db_get_recent_mood_logs(user_id=user_id, limit=limit)
+    if not recent:
         return "No mood history found yet. We will build that together over time."
 
-    recent = log[-limit:]
     lines = ["Here is what I have noted from our recent check-ins:"]
     for entry in recent:
         date = entry["timestamp"][:10]
@@ -95,9 +84,9 @@ def get_recent_entries_tool(limit: int = 7) -> str:
     return "\n".join(lines)
 
 
-def get_mood_history_tool() -> str:
+def get_mood_history_tool(user_id: str = "default_user") -> str:
     """Tool wrapper returning recent entries — kept for parity with agent.py's mood_history_tool."""
-    return get_recent_entries_tool(limit=7)
+    return get_recent_entries_tool(limit=7, user_id=user_id)
 
 
 # ─────────────────────────────────────────────
@@ -108,15 +97,15 @@ def _parse_date(ts: str) -> datetime.date:
     return datetime.datetime.fromisoformat(ts).date()
 
 
-def analyze_trends(days: int = 30) -> dict:
+def analyze_trends(user_id: str = "default_user", days: int = 30) -> dict:
     """
-    Computes comparative metrics across a tracking cycle:
+    Computes comparative metrics across a tracking cycle for a specific user:
     - baseline intensity shift (first half vs second half of the window)
     - dominant emotional states
     - escalation / resilience signal, overall and per-emotion
     - streak of logging (engagement)
     """
-    log = _load_log()
+    log = db_get_all_mood_logs(user_id=user_id)
     if not log:
         return {"has_data": False}
 
@@ -290,6 +279,7 @@ async def log_and_synthesize(
     mode: str,
     runner: Runner,
     session_id: str,
+    user_id: str = "default_user",
     window_days: int = 30,
 ) -> dict:
     """
@@ -297,26 +287,32 @@ async def log_and_synthesize(
     trends, and returns both raw metrics and synthesized commentary for the
     frontend to render.
     """
-    log_message = log_mood_tool(emotional_state, intensity, note)
-    trends = analyze_trends(days=window_days)
+    log_message = log_mood_tool(emotional_state, intensity, note, user_id=user_id)
+    trends = analyze_trends(user_id=user_id, days=window_days)
     commentary = await get_trend_commentary(trends, mode, runner, session_id)
 
     return {
         "log_message": log_message,
         "trends": trends,
         "commentary": commentary,
-        "recent_entries": _load_log()[-7:],
+        "recent_entries": db_get_recent_mood_logs(user_id=user_id, limit=7),
     }
 
 
-async def get_dashboard(mode: str, runner: Runner, session_id: str, window_days: int = 30) -> dict:
+async def get_dashboard(
+    mode: str,
+    runner: Runner,
+    session_id: str,
+    user_id: str = "default_user",
+    window_days: int = 30,
+) -> dict:
     """Used by a GET endpoint to render the dashboard without requiring a new log entry."""
-    trends = analyze_trends(days=window_days)
+    trends = analyze_trends(user_id=user_id, days=window_days)
     commentary = await get_trend_commentary(trends, mode, runner, session_id)
     return {
         "trends": trends,
         "commentary": commentary,
-        "recent_entries": _load_log()[-7:],
+        "recent_entries": db_get_recent_mood_logs(user_id=user_id, limit=7),
     }
 
 
@@ -380,14 +376,14 @@ async def main():
                 print("Please enter a number from 1 to 10.")
 
             note = input("Anything you'd like to note? (optional): ").strip()
-            print(f"\n  {log_mood_tool(state, intensity, note)}")
+            print(f"\n  {log_mood_tool(state, intensity, note, user_id=USER_ID)}")
 
         elif choice == "2":
             print("\n  Reflecting on your patterns...\n")
-            trends = analyze_trends(days=30)
+            trends = analyze_trends(user_id=USER_ID, days=30)
             commentary = await get_trend_commentary(trends, mode, runner, session_id)
             print(f"  {commentary}\n")
-            print(get_recent_entries_tool(limit=7))
+            print(get_recent_entries_tool(limit=7, user_id=USER_ID))
 
         elif choice == "3":
             print("\n  May your heart find steadiness. 🌿\n")

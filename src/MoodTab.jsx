@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "./AuthContext";
 import { apiFetch } from "./apiKeyHelper";
 
 // ─────────────────────────────────────────────
@@ -26,6 +27,7 @@ const SIGNAL_COPY = {
 };
 
 const MoodTab = ({ isDark, tokensRef }) => {
+    const { user } = useAuth();
     const t = tokensRef ? (isDark ? tokensRef.dark : tokensRef.light) : (isDark
         ? {
             bgBase: "#07111C", glass: "rgba(13,27,42,0.55)", glassCard: "rgba(18,35,52,0.70)",
@@ -64,6 +66,7 @@ const MoodTab = ({ isDark, tokensRef }) => {
 
     useEffect(() => {
         let isMounted = true;
+        setDashboardLoading(true);
         apiFetch(`/api/mood?mode=${mode}`)
             .then((res) => res.json())
             .then((data) => {
@@ -78,7 +81,7 @@ const MoodTab = ({ isDark, tokensRef }) => {
         return () => {
             isMounted = false;
         };
-    }, [mode]);
+    }, [mode, user?.sub]);
 
     const submitMood = async () => {
         if (!emotion || submitting) return;

@@ -529,12 +529,7 @@ async def post_mood_endpoint(
     x_user_id: Optional[str] = Header(None, alias="X-User-Id"),
 ):
     try:
-        if x_user_id:
-            try:
-                add_mood_log(user_id=x_user_id, state=req.emotion, intensity=req.intensity, note=req.note)
-            except Exception as db_err:
-                logger.warning(f"Failed to log mood to SQLite: {db_err}")
-
+        user_id = x_user_id.strip() if (x_user_id and x_user_id.strip()) else DEFAULT_USER_ID
         effective_key = get_effective_api_key(x_gemini_api_key)
         runner = create_mood_runner(api_key=effective_key, model_name=x_gemini_model)
 
@@ -545,6 +540,7 @@ async def post_mood_endpoint(
             mode=req.mode,
             runner=runner,
             session_id=MOOD_SESSION,
+            user_id=user_id,
         )
         return data
     except Exception as e:
@@ -556,8 +552,10 @@ async def get_mood_endpoint(
     mode: str = "islamic",
     x_gemini_api_key: Optional[str] = Header(None, alias="X-Gemini-API-Key"),
     x_gemini_model: Optional[str] = Header(None, alias="X-Gemini-Model"),
+    x_user_id: Optional[str] = Header(None, alias="X-User-Id"),
 ):
     try:
+        user_id = x_user_id.strip() if (x_user_id and x_user_id.strip()) else DEFAULT_USER_ID
         effective_key = get_effective_api_key(x_gemini_api_key)
         runner = create_mood_runner(api_key=effective_key, model_name=x_gemini_model)
 
@@ -565,6 +563,7 @@ async def get_mood_endpoint(
             mode=mode,
             runner=runner,
             session_id=MOOD_SESSION,
+            user_id=user_id,
         )
         return data
     except Exception as e:

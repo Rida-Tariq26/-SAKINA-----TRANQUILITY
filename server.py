@@ -12,43 +12,24 @@ MOOD_LOG_FILE = os.environ.get(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "mood_log.json")
 )
 
+from database import add_mood_log, get_recent_mood_logs
+
 @mcp.tool()
 def mood_log_tool(emotional_state: str, intensity: int) -> str:
-    entry = {
-        "timestamp": datetime.datetime.now().isoformat(),
-        "state": emotional_state,
-        "intensity": intensity
-    }
-
-    if os.path.exists(MOOD_LOG_FILE):
-        with open(MOOD_LOG_FILE, "r") as f:
-            log = json.load(f)
-    else:
-        log = []
-
-    log.append(entry)
-
-    with open(MOOD_LOG_FILE, "w") as f:
-        json.dump(log, f, indent=2)
-
+    add_mood_log(user_id="default_user", state=emotional_state, intensity=intensity, note="")
     return f"Noted. Logged: {emotional_state} (intensity {intensity}/10)."
 
 @mcp.tool()
 def mood_history_tool() -> str:
-    if not os.path.exists(MOOD_LOG_FILE):
+    recent = get_recent_mood_logs(user_id="default_user", limit=7)
+    if not recent:
         return "No mood history found yet. We will build that together over time."
 
-    with open(MOOD_LOG_FILE, "r") as f:
-        log = json.load(f)
-
-    if not log:
-        return "No entries logged yet."
-
-    recent = log[-7:]
     summary = "Here is what I have noted from our recent sessions:\n"
     for entry in recent:
         date = entry["timestamp"][:10]
-        summary += f"  • {date}: {entry['state']} (intensity {entry['intensity']}/10)\n"
+        note = f" — {entry['note']}" if entry.get("note") else ""
+        summary += f"  • {date}: {entry['state']} (intensity {entry['intensity']}/10){note}\n"
 
     return summary
 

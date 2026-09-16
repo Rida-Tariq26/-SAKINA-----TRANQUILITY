@@ -53,6 +53,11 @@ def init_db() -> None:
 
         CREATE INDEX IF NOT EXISTS idx_mood_user ON mood_logs(user_id);
     """)
+    now = datetime.now(timezone.utc).isoformat()
+    conn.execute("""
+        INSERT OR IGNORE INTO users (user_id, email, name, picture, created_at)
+        VALUES ('default_user', 'guest@sakina.local', 'Guest User', '', ?)
+    """, (now,))
     conn.commit()
     conn.close()
 
@@ -91,26 +96,43 @@ def get_user(user_id: str) -> dict | None:
 # ─────────────────────────────────────────────
 # MOOD LOG OPERATIONS
 # ─────────────────────────────────────────────
-def add_mood_log(user_id: str, state: str, intensity: int, note: str = "") -> None:
-    """Append a new mood entry for this user."""
+def add_mood_log(user_id: str, state: str, intensity: int, note: str = "") -> dict:
+    """Append a new mood entry for this user and return the record dict."""
+    user_id = user_id or "default_user"
     now = datetime.now(timezone.utc).isoformat()
     conn = get_db()
     conn.execute("""
+        INSERT OR IGNORE INTO users (user_id, email, name, picture, created_at)
+        VALUES (?, 'guest@sakina.local', 'User', '', ?)
+    """, (user_id, now))
+    cursor = conn.execute("""
         INSERT INTO mood_logs (user_id, timestamp, state, intensity, note)
         VALUES (?, ?, ?, ?, ?)
     """, (user_id, now, state, intensity, note))
+    entry_id = cursor.lastrowid
     conn.commit()
     conn.close()
+    return {
+        "id": entry_id,
+        "user_id": user_id,
+        "timestamp": now,
+        "state": state,
+        "intensity": intensity,
+        "note": note,
+    }
 
 
 def get_recent_mood_logs(user_id: str, limit: int = 7) -> list[dict]:
-    """Return the N most recent mood entries for this user."""
+    """Return the N most recent mood entries for this user in chronological order."""
+    user_id = user_id or "default_user"
     conn = get_db()
     rows = conn.execute("""
-        SELECT * FROM mood_logs
-        WHERE user_id = ?
-        ORDER BY timestamp DESC
-        LIMIT ?
+        SELECT * FROM (
+            SELECT * FROM mood_logs
+            WHERE user_id = ?
+            ORDER BY timestamp DESC
+            LIMIT ?
+        ) ORDER BY timestamp ASC
     """, (user_id, limit)).fetchall()
     conn.close()
     return [dict(r) for r in rows]

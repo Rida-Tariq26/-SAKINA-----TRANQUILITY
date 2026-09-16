@@ -4,6 +4,8 @@ import os
 
 MOOD_LOG_FILE = "mood_log.json"
 
+from database import add_mood_log, get_recent_mood_logs
+
 def mood_log_tool(emotional_state: str, intensity: int) -> str:
     """
     Logs the user's current emotional state and intensity to persistent storage.
@@ -19,24 +21,7 @@ def mood_log_tool(emotional_state: str, intensity: int) -> str:
     Returns:
         A confirmation string
     """
-    entry = {
-        "timestamp": datetime.datetime.now().isoformat(),
-        "state": emotional_state,
-        "intensity": intensity
-    }
-
-    # Load existing log or start fresh
-    if os.path.exists(MOOD_LOG_FILE):
-        with open(MOOD_LOG_FILE, "r") as f:
-            log = json.load(f)
-    else:
-        log = []
-
-    log.append(entry)
-
-    with open(MOOD_LOG_FILE, "w") as f:
-        json.dump(log, f, indent=2)
-
+    add_mood_log(user_id="default_user", state=emotional_state, intensity=intensity, note="")
     return f"Noted. I've logged: {emotional_state} (intensity {intensity}/10)."
 
 
@@ -49,20 +34,14 @@ def mood_history_tool() -> str:
     Returns:
         A formatted summary of recent mood entries
     """
-    if not os.path.exists(MOOD_LOG_FILE):
-        return "No mood history found yet. We'll build that together over time."
-
-    with open(MOOD_LOG_FILE, "r") as f:
-        log = json.load(f)
-
-    if not log:
+    recent = get_recent_mood_logs(user_id="default_user", limit=7)
+    if not recent:
         return "No entries logged yet."
 
-    # Return last 7 entries
-    recent = log[-7:]
     summary = "Here's what I've noted from our recent sessions:\n"
     for entry in recent:
         date = entry["timestamp"][:10]
-        summary += f"  • {date}: {entry['state']} (intensity {entry['intensity']}/10)\n"
+        note = f" — {entry['note']}" if entry.get("note") else ""
+        summary += f"  • {date}: {entry['state']} (intensity {entry['intensity']}/10){note}\n"
 
     return summary
