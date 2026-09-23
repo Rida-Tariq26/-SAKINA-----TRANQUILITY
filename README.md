@@ -4,7 +4,7 @@
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Google ADK](https://img.shields.io/badge/Google%20ADK-2.0%2B-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://github.com/google/agent-development-kit)
-[![Gemini](https://img.shields.io/badge/Gemini-2.5%20Flash-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white)](https://aistudio.google.com/)
+[![Gemini](https://img.shields.io/badge/Gemini-2.0%20Flash-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white)](https://aistudio.google.com/)
 [![MCP](https://img.shields.io/badge/Protocol-FastMCP-FF6F00?style=for-the-badge)](https://modelcontextprotocol.io/)
 [![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-8.1-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
@@ -53,7 +53,7 @@ Modern Muslims experiencing anxiety, grief, burnout, and emotional stress freque
 
 Sakina unifies these complementary paradigms. Drawing upon traditional scholars (*Al-Ghazali, Ibn al-Qayyim, Abu Zayd al-Balkhi*) and modern clinical frameworks (*Cognitive Behavioral Therapy, Acceptance & Commitment Therapy, Neuroscience, Polyvagal Theory*), Sakina delivers personalized emotional reflection, grounding exercises, and mood tracking within a secure, empathetic environment.
 
-> *Built as a capstone for the **Kaggle x Google 5-Day AI Agents Intensive**, powered by the **Google Agent Development Kit (ADK)**, **FastMCP**, and **Google Gemini 2.5 Flash**.*
+> *Built as a capstone for the **Kaggle x Google 5-Day AI Agents Intensive**, powered by the **Google Agent Development Kit (ADK)**, **FastMCP**, and **Google Gemini 2.0 Flash**.*
 
 ---
 
@@ -105,7 +105,7 @@ flowchart TD
         TierGen[3. Tiered Response Builder & Geolocation Hotlines]
     end
 
-    subgraph ADK["Google ADK Agent Layer (Gemini 2.5 Flash)"]
+    subgraph ADK["Google ADK Agent Layer (Gemini 2.0 Flash)"]
         Agent[Sakina Conversational Agent]
         SessionMgr[InMemory Session Service]
     end
@@ -167,14 +167,14 @@ flowchart LR
 Sakina supports three flexible conversational modes, dynamically chosen based on contextual cues:
 - **Faith-Led Mode (Default):** Integrates Islamic spiritual principles (*Tawakkul, Sabr, Dhikr, Muraqabah*) and pairs them with psychological validation.
 - **Scientific Inquiry Mode:** Prioritizes cognitive neuroscience, CBT, and ACT frameworks, then links back to classical Islamic literature.
-- **Secular Practice Mode:** Activated upon explicit request; provides purely evidence-based clinical practices and secular mindfulness.
+- **Clinical & Scientific Practice Mode:** Activated upon explicit request; provides purely evidence-based clinical practices and somatic mindfulness without religious framing.
 
-### 2. Dhikr & Evidence-Based Practice Engine
+### 2. Dhikr & Clinical & Scientific Practice Engine
 - **12 Curated Emotional States:** Including Anxiety (*Qalaq*), Grief (*Huzn*), Anger (*Ghadab*), Spiritual Emptiness, Burnout, and Loneliness.
 - **Dynamic AI Emotion Resolver:** If a user expresses their feelings in open-ended natural language, Sakina analyzes the underlying state and maps it to relevant practices.
 - **Dual Practice Tables:**
   - *Islamic Practice:* Arabic script, transliteration, English translation, authentic Quran/Hadith reference, repetition count, and personalized AI context.
-  - *Secular Practice:* Step-by-step instructions, somatic mechanism, psychological citations, and personalized AI commentary.
+  - *Clinical & Scientific Practice:* Step-by-step instructions, somatic mechanism, psychological citations, and personalized AI commentary.
 
 ### 3. Mood Tracking & Longitudinal Synthesis
 - **Granular Mood Logging:** Records emotion tags, 1–10 intensity ratings, and journal notes.
@@ -198,7 +198,7 @@ Sakina supports three flexible conversational modes, dynamically chosen based on
 | Domain | Technology / Library | Version | Purpose |
 |:---|:---|:---|:---|
 | **Core AI Agent** | [Google ADK](https://github.com/google/agent-development-kit) | `^2.0.0` | Agent runtime, stateful runners, and session management |
-| **Foundation Model**| Google Gemini 2.5 Flash | — | Fast, low-latency reasoning and empathetic dialogue generation |
+| **Foundation Model**| Google Gemini 2.0 Flash | — | Fast, low-latency reasoning and empathetic dialogue generation |
 | **Tool Interface** | [FastMCP](https://github.com/jlowin/fastmcp) / `mcp` | `^0.1.0` / `^1.0.0` | Model Context Protocol server over stdio for agent tool execution |
 | **Backend Framework**| [FastAPI](https://fastapi.tiangolo.com/) | `^0.110.0` | Asynchronous REST API, lifespan management, and SPA serving |
 | **ASGI Server** | [Uvicorn](https://www.uvicorn.org/) | `^0.29.0` | High-performance asynchronous Python web server |
@@ -217,7 +217,7 @@ sakina_agent/
 ├── FrontendAPI.py        # Main FastAPI entry point, ADK Runner & MCP Client orchestration
 ├── agent.py              # Farewell detection and conversation lifecycle handlers
 ├── database.py           # SQLite persistence layer (User data, mood logs, GDPR export/delete)
-├── dhikr.py              # Practice libraries (Islamic & Secular), AI emotion resolver & commentary
+├── dhikr.py              # Practice libraries (Islamic & Clinical/Scientific), AI emotion resolver & commentary
 ├── guardrails.py         # 3-Tier safety pipeline, prompt injection defense, emergency hotlines
 ├── mood_tracker.py       # Mood analytics, longitudinal pattern synthesis, dashboard generators
 ├── server.py             # FastMCP stdio server exposing mood_log_tool & mood_history_tool
@@ -351,7 +351,7 @@ Open your browser at **`http://localhost:5173`** (Vite automatically proxies API
 
 | Variable | Required | Default | Description |
 |:---|:---:|:---|:---|
-| `GOOGLE_API_KEY` | **Yes** | — | Google AI Studio key enabling Gemini 2.5 Flash |
+| `GOOGLE_API_KEY` | **Yes** | — | Google AI Studio key enabling Gemini 2.0 Flash |
 | `GOOGLE_CLIENT_ID` | No | — | Backend Google OAuth 2.0 audience verification |
 | `VITE_GOOGLE_CLIENT_ID` | No | — | Frontend Google OAuth client initialization |
 | `MOOD_LOG_PATH` | No | `mood_log.json` | Path to persistent mood log file for FastMCP |
@@ -528,7 +528,7 @@ To deploy Sakina to scalable cloud infrastructure:
 This project is licensed under the **MIT License**.
 
 - Built with efforts for the **Kaggle x Google 5-Day AI Agents Intensive Course**.
-- Powered by **Google Gemini 2.5 Flash** and **Google Agent Development Kit (ADK)**.
+- Powered by **Google Gemini 2.0 Flash** and **Google Agent Development Kit (ADK)**.
 - Gratitude to classical Islamic scholars and contemporary clinical researchers whose work bridges mind, heart, and spirit.
 
 ---

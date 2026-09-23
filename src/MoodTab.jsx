@@ -52,7 +52,7 @@ const MoodTab = ({ isDark, tokensRef }) => {
     const [note, setNote] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [dashboard, setDashboard] = useState(null);
-    const [dashboardLoading, setDashboardLoading] = useState(true);
+    const [dashboardLoading, setDashboardLoading] = useState(false);
     const [justLogged, setJustLogged] = useState(false);
 
     const labelStyle = {
@@ -66,14 +66,22 @@ const MoodTab = ({ isDark, tokensRef }) => {
 
     useEffect(() => {
         let isMounted = true;
-        setDashboardLoading(true);
+        if (!dashboard) {
+            setDashboardLoading(true);
+        }
         apiFetch(`/api/mood?mode=${mode}`)
             .then((res) => res.json())
             .then((data) => {
                 if (isMounted) setDashboard(data);
             })
             .catch(() => {
-                if (isMounted) setDashboard({ error: true });
+                if (isMounted && !dashboard) {
+                    setDashboard({
+                        trends: { has_data: false },
+                        commentary: "Once you start logging how you feel, patterns and reflections will appear here.",
+                        recent_entries: [],
+                    });
+                }
             })
             .finally(() => {
                 if (isMounted) setDashboardLoading(false);
@@ -100,7 +108,7 @@ const MoodTab = ({ isDark, tokensRef }) => {
             setIntensity(5);
             setTimeout(() => setJustLogged(false), 2400);
         } catch {
-            setDashboard({ error: true });
+            // Keep existing dashboard if submit had network blip
         } finally {
             setSubmitting(false);
         }
@@ -116,18 +124,23 @@ const MoodTab = ({ isDark, tokensRef }) => {
             <div style={{ display: "flex", gap: "0.6rem", marginBottom: "2.2rem" }}>
                 {[
                     { key: "islamic", label: "Islamic" },
-                    { key: "secular", label: "Secular" },
+                    { key: "clinical_scientific", label: "Clinical & Scientific" },
                 ].map(opt => (
                     <button
                         key={opt.key}
-                        onClick={() => setMode(opt.key)}
+                        onClick={() => {
+                            if (mode !== opt.key) {
+                                setMode(opt.key);
+                                setDashboard(null);
+                            }
+                        }}
                         style={{
-                            background: mode === opt.key ? `${t.glow}18` : t.glass,
-                            border: `1px solid ${mode === opt.key ? t.borderGlow : t.border}`,
+                            background: (mode === opt.key || (opt.key === "clinical_scientific" && mode === "secular")) ? `${t.glow}18` : t.glass,
+                            border: `1px solid ${(mode === opt.key || (opt.key === "clinical_scientific" && mode === "secular")) ? t.borderGlow : t.border}`,
                             borderRadius: "20px",
                             padding: "7px 18px",
                             cursor: "pointer",
-                            color: mode === opt.key ? t.glow : t.textMuted,
+                            color: (mode === opt.key || (opt.key === "clinical_scientific" && mode === "secular")) ? t.glow : t.textMuted,
                             fontSize: "0.76rem",
                             letterSpacing: "0.06em",
                             transition: "all 0.22s ease",

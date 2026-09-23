@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Component } from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider, useAuth } from "./AuthContext";
 import MoodTab from "./MoodTab";
@@ -7,8 +7,81 @@ import PrivacyPolicy from "./PrivacyPolicy";
 import TermsOfService from "./TermsOfService";
 import CookieBanner from "./CookieBanner";
 import SettingsTab from "./SettingsTab";
+import JournalTab from "./JournalTab";
+import AudioPlayer from "./AudioPlayer";
 import { apiFetch } from "./apiKeyHelper";
 import { tokens } from "./tokens";
+
+// ─────────────────────────────────────────────
+// ERROR BOUNDARY
+// ─────────────────────────────────────────────
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
+  }
+
+  handleReset = () => {
+    this.setState({ hasError: false, error: null });
+  };
+
+  render() {
+    if (this.state.hasError) {
+      const isDark = this.props.isDark;
+      const t = isDark ? tokens.dark : tokens.light;
+      return (
+        <div style={{
+          padding: "2.5rem 2rem",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          height: "100%",
+        }}>
+          <div className="glass-card" style={{
+            maxWidth: "480px",
+            padding: "2rem",
+            borderRadius: "16px",
+          }}>
+            <div style={{ fontSize: "1.8rem", marginBottom: "0.8rem", color: t.gold }}>✦</div>
+            <h3 style={{ fontSize: "1.1rem", marginBottom: "0.5rem", color: t.textPrimary, fontWeight: 400 }}>
+              A temporary pause in {this.props.tabName || "this view"}
+            </h3>
+            <p style={{ fontSize: "0.85rem", color: t.textMuted, lineHeight: 1.6, marginBottom: "1.5rem" }}>
+              Something unexpected happened while rendering this section. Your other tabs and saved data remain safe.
+            </p>
+            <button
+              onClick={this.handleReset}
+              style={{
+                background: `linear-gradient(135deg, ${t.glow}, ${t.goldSoft})`,
+                border: "none",
+                borderRadius: "10px",
+                padding: "9px 20px",
+                color: isDark ? "#07111C" : "#fff",
+                fontSize: "0.82rem",
+                fontWeight: 500,
+                cursor: "pointer",
+                boxShadow: `0 2px 10px rgba(196,132,90,0.3)`,
+              }}
+            >
+              Reload Section
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // ─────────────────────────────────────────────
 // GLOBAL STYLES
@@ -17,8 +90,6 @@ const GlobalStyles = ({ isDark }) => {
   const t = isDark ? tokens.dark : tokens.light;
   return (
     <style>{`
-      @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500&family=Noto+Naskh+Arabic:wght@400;500;600&display=swap');
-
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
       html, body { height: 100%; overflow-x: hidden; }
@@ -157,33 +228,57 @@ const Particles = ({ isDark, count = 18 }) => {
 // MOUSE-TRACKED ORB
 // ─────────────────────────────────────────────
 const TrackedOrb = ({ isDark }) => {
-  const [pos, setPos] = useState({ x: 50, y: 50 });
+  const orbRef = useRef(null);
+
   useEffect(() => {
-    const move = (e) => {
-      setPos({
-        x: (e.clientX / window.innerWidth) * 100,
-        y: (e.clientY / window.innerHeight) * 100,
-      });
+    let targetX = window.innerWidth / 2;
+    let targetY = window.innerHeight / 2;
+    let currentX = targetX;
+    let currentY = targetY;
+    let rafId = null;
+
+    const handleMouseMove = (e) => {
+      targetX = e.clientX;
+      targetY = e.clientY;
     };
-    window.addEventListener("mousemove", move, { passive: true });
-    return () => window.removeEventListener("mousemove", move);
+
+    const animate = () => {
+      currentX += (targetX - currentX) * 0.08;
+      currentY += (targetY - currentY) * 0.08;
+
+      if (orbRef.current) {
+        orbRef.current.style.transform = `translate3d(${currentX - 300}px, ${currentY - 300}px, 0)`;
+      }
+      rafId = requestAnimationFrame(animate);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    rafId = requestAnimationFrame(animate);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, []);
+
   return (
-    <div style={{
-      position: "fixed",
-      left: `${pos.x}%`,
-      top: `${pos.y}%`,
-      transform: "translate(-50%,-50%)",
-      width: "600px",
-      height: "600px",
-      borderRadius: "50%",
-      background: isDark
-        ? "radial-gradient(circle, rgba(196,132,90,0.07) 0%, transparent 65%)"
-        : "radial-gradient(circle, rgba(160,98,60,0.06) 0%, transparent 65%)",
-      pointerEvents: "none",
-      transition: "left 1.2s cubic-bezier(0.25,0.46,0.45,0.94), top 1.2s cubic-bezier(0.25,0.46,0.45,0.94)",
-      zIndex: 0,
-    }} />
+    <div
+      ref={orbRef}
+      style={{
+        position: "fixed",
+        left: 0,
+        top: 0,
+        width: "600px",
+        height: "600px",
+        borderRadius: "50%",
+        background: isDark
+          ? "radial-gradient(circle, rgba(196,132,90,0.07) 0%, transparent 65%)"
+          : "radial-gradient(circle, rgba(160,98,60,0.06) 0%, transparent 65%)",
+        pointerEvents: "none",
+        zIndex: 0,
+        willChange: "transform",
+      }}
+    />
   );
 };
 
@@ -481,7 +576,7 @@ const LandingPage = ({ isDark, onEnter, onToggleTheme, onNavigate }) => {
           marginTop: "3.5rem",
           opacity: 0.5,
         }}>
-          {["Guided Conversation", "Dhikr & Practice", "Evidence-Based"].map((label, i) => (
+          {["Guided Conversation", "Dhikr & Practice", "Clinical & Scientific"].map((label, i) => (
             <div key={i} style={{
               display: "flex",
               alignItems: "center",
@@ -571,21 +666,33 @@ const ChatTab = ({ isDark, onNavigate }) => {
   const bottomRef = useRef(null);
 
   useEffect(() => {
+    if (messages.length > 0) {
+      setGreetingLoading(false);
+      return;
+    }
+    let isMounted = true;
     const fetchGreeting = async () => {
       try {
         const res = await apiFetch("/api/greeting", { method: "POST" });
         const data = await res.json();
-        setMessages([{ role: "assistant", text: data.response }]);
+        if (isMounted) {
+          setMessages([{ role: "assistant", text: data.response }]);
+        }
       } catch {
-        setMessages([{
-          role: "assistant",
-          text: "Assalam-o-Alaikum\n\nI am Sakina — a space for stillness. Whatever is on your heart today, you are welcome to share it here.\n\nWhat's on your mind?",
-        }]);
+        if (isMounted) {
+          setMessages([{
+            role: "assistant",
+            text: "Assalam-o-Alaikum\n\nI am Sakina — a space for stillness. Whatever is on your heart today, you are welcome to share it here.\n\nWhat's on your mind?",
+          }]);
+        }
       } finally {
-        setGreetingLoading(false);
+        if (isMounted) {
+          setGreetingLoading(false);
+        }
       }
     };
     fetchGreeting();
+    return () => { isMounted = false; };
   }, []);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
@@ -911,7 +1018,7 @@ const DhikrTab = ({ isDark }) => {
       <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
         {[
           { key: "islamic", label: "Dhikr & Du'a", sub: "Islamic spiritual practices", icon: "☽" },
-          { key: "secular", label: "Evidence-Based", sub: "Scientifically grounded practices", icon: "◎" },
+          { key: "clinical_scientific", label: "Clinical & Scientific", sub: "Scientifically grounded practices", icon: "◎" },
         ].map(opt => (
           <button key={opt.key} onClick={() => handleModeSelect(opt.key)}
             className="glass-card"
@@ -1084,6 +1191,7 @@ const AppPage = ({ isDark, onToggleTheme, onNavigate, onLogout }) => {
     { key: "chat", label: "Chat", icon: "◎" },
     { key: "dhikr", label: "Dhikr", icon: "✦" },
     { key: "mood", label: "Mood Tracker", icon: "❀" },
+    { key: "journal", label: "Journal", icon: "✎" },
     { key: "settings", label: "Settings", icon: "⚙" },
   ];
 
@@ -1180,13 +1288,37 @@ const AppPage = ({ isDark, onToggleTheme, onNavigate, onLogout }) => {
           </span>
         </div>
 
-        <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-          {tab === "chat" && <ChatTab isDark={isDark} onNavigate={setTab} />}
-          {tab === "dhikr" && <DhikrTab isDark={isDark} onNavigate={setTab} />}
-          {tab === "mood" && <MoodTab isDark={isDark} tokensRef={tokens} onNavigate={setTab} />}
-          {tab === "settings" && <SettingsTab isDark={isDark} onNavigate={onNavigate} onLogout={onLogout} />}
+        <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
+          <div style={{ display: tab === "chat" ? "flex" : "none", height: "100%", flexDirection: "column" }}>
+            <ErrorBoundary isDark={isDark} tabName="Chat">
+              <ChatTab isDark={isDark} onNavigate={setTab} />
+            </ErrorBoundary>
+          </div>
+          <div style={{ display: tab === "dhikr" ? "flex" : "none", height: "100%", flexDirection: "column", overflowY: "auto" }}>
+            <ErrorBoundary isDark={isDark} tabName="Dhikr">
+              <DhikrTab isDark={isDark} onNavigate={setTab} />
+            </ErrorBoundary>
+          </div>
+          <div style={{ display: tab === "mood" ? "flex" : "none", height: "100%", flexDirection: "column", overflowY: "auto" }}>
+            <ErrorBoundary isDark={isDark} tabName="Mood Tracker">
+              <MoodTab isDark={isDark} tokensRef={tokens} onNavigate={setTab} />
+            </ErrorBoundary>
+          </div>
+          <div style={{ display: tab === "journal" ? "flex" : "none", height: "100%", flexDirection: "column", overflowY: "auto" }}>
+            <ErrorBoundary isDark={isDark} tabName="Journal">
+              <JournalTab isDark={isDark} tokensRef={tokens} onNavigate={setTab} />
+            </ErrorBoundary>
+          </div>
+          <div style={{ display: tab === "settings" ? "flex" : "none", height: "100%", flexDirection: "column", overflowY: "auto" }}>
+            <ErrorBoundary isDark={isDark} tabName="Settings">
+              <SettingsTab isDark={isDark} onNavigate={onNavigate} onLogout={onLogout} />
+            </ErrorBoundary>
+          </div>
         </div>
       </div>
+
+      {/* Floating / Docked Soundscape Audio Player (Spotify & Local Audio) */}
+      <AudioPlayer isDark={isDark} tokensRef={tokens} />
     </div>
   );
 };

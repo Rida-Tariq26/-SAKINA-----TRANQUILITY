@@ -16,6 +16,7 @@ from database import (
     add_mood_log as db_add_mood_log,
     get_recent_mood_logs as db_get_recent_mood_logs,
     get_all_mood_logs as db_get_all_mood_logs,
+    get_mood_logs_since as db_get_mood_logs_since,
 )
 
 load_dotenv()
@@ -196,7 +197,7 @@ Your job is to write a warm, personal synthesis (5-8 sentences) that:
    streak is present.
 4. Offers ONE concrete, gentle, specific wellness recommendation suited to what the
    data shows — CBT/ACT-based, or, if mode is Islamic, a relevant spiritual practice
-   (dhikr, du'a, reflection) — without forcing religious framing in secular mode.
+   (dhikr, du'a, reflection) — without forcing religious framing in clinical & scientific mode.
 5. Ends with one sentence of grounded, realistic encouragement — not toxic positivity,
    and never dismissive of difficulty if the trend is escalating.
 
@@ -225,11 +226,12 @@ def _build_trend_prompt(trends: dict, mode: str) -> str:
             "checking in so patterns can emerge."
         )
 
+    is_islamic = mode not in ("secular", "clinical_scientific")
     mode_note = (
         "The user has engaged with Sakina's Islamic mode, so a spiritual practice "
         "recommendation is welcome if it fits naturally."
-        if mode == "islamic"
-        else "The user has engaged with Sakina's secular mode, so keep recommendations "
+        if is_islamic
+        else "The user has engaged with Sakina's clinical & scientific mode, so keep recommendations "
         "strictly evidence-based and non-religious."
     )
 
@@ -248,7 +250,7 @@ def _build_trend_prompt(trends: dict, mode: str) -> str:
 
 
 async def get_trend_commentary(trends: dict, mode: str, runner: Runner, session_id: str) -> str:
-    """Gets AI-synthesized commentary on the user's mood trends."""
+    """Gets AI-synthesized commentary on the user's mood trends with timeout protection."""
     prompt = _build_trend_prompt(trends, mode)
     try:
         response = runner.run_async(
@@ -262,9 +264,9 @@ async def get_trend_commentary(trends: dict, mode: str, runner: Runner, session_
             if event.is_final_response() and event.content and event.content.parts:
                 commentary = event.content.parts[0].text
 
-        return commentary
+        return commentary or "Taking time to notice your patterns is a meaningful step toward balance. Keep checking in as you navigate each day."
     except Exception as e:
-        return f"[Commentary unavailable: {e}]"
+        return "Taking time to notice your patterns is a meaningful step toward balance and clarity. Keep checking in with yourself as you navigate each day."
 
 
 # ─────────────────────────────────────────────
@@ -328,14 +330,14 @@ async def main():
 
     print("\nHow would you like your reflections framed?")
     print("  1. Islamic")
-    print("  2. Secular")
+    print("  2. Clinical & Scientific")
     while True:
         mode_input = input("Enter 1 or 2: ").strip()
         if mode_input == "1":
             mode = "islamic"
             break
         elif mode_input == "2":
-            mode = "secular"
+            mode = "clinical_scientific"
             break
         print("Please enter 1 or 2.")
 
@@ -345,7 +347,7 @@ async def main():
 
     commentary_agent = Agent(
         name="SakinaMoodGuide",
-        model=os.environ.get("GEMINI_MODEL", "gemini-2.5-flash"),
+        model=os.environ.get("GEMINI_MODEL", "gemini-2.0-flash"),
         instruction=TREND_COMMENTARY_PROMPT,
     )
     runner = Runner(agent=commentary_agent, app_name=APP_NAME, session_service=session_service)

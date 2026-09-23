@@ -14,7 +14,7 @@ def main():
     
     # Generate a simple response
     response = client.models.generate_content(
-        model='gemini-2.5-flash',
+        model='gemini-2.0-flash',
         contents='Hello! Confirming that our connection is successful.',
     )
     

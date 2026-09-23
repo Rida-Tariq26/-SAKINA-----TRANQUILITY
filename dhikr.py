@@ -202,7 +202,7 @@ DHIKR_TABLE = {
 }
 
 # ─────────────────────────────────────────────
-# SECTION 2: STATIC SECULAR PRACTICES TABLE (MODE 3)
+# SECTION 2: STATIC CLINICAL & SCIENTIFIC PRACTICES TABLE (MODE 3)
 # ─────────────────────────────────────────────
 
 SECULAR_TABLE = {
@@ -421,6 +421,9 @@ Do NOT list the practices again. Do NOT use bullet points. Write as if speaking 
 Keep it concise and human — this is a guide, not a lecture.
 """
 
+CLINICAL_SCIENTIFIC_COMMENTARY_PROMPT = SECULAR_COMMENTARY_PROMPT
+CLINICAL_SCIENTIFIC_TABLE = SECULAR_TABLE
+
 
 PRACTICE_PERSONALIZATION_PROMPT = """
 You are Sakina, a compassionate {framework} wellness guide.
@@ -464,9 +467,10 @@ async def get_practice_personalizations(
     a generic, locally-generated note per entry if the agent call fails or the
     response can't be cleanly split.
     """
-    framework = "Islamic" if mode != "secular" else "evidence-based, secular"
+    is_islamic = mode not in ("secular", "clinical_scientific")
+    framework = "Islamic" if is_islamic else "evidence-based, clinical & scientific"
 
-    if mode != "secular":
+    if is_islamic:
         listed_practices = "\n".join(
             f'{i}. "{e[2]}" — {e[3]}'
             for i, e in enumerate(entries, 1)
@@ -521,9 +525,9 @@ async def get_practice_personalizations(
 
 async def get_ai_commentary(emotional_state: str, mode: str, runner: Runner, session_id: str) -> str:
     """Gets personalised AI commentary for the given emotional state and mode."""
-
-    system_prompt = DHIKR_COMMENTARY_PROMPT if mode != "secular" else SECULAR_COMMENTARY_PROMPT
-    practice_type = "dhikr and du'a practices" if mode != "secular" else "evidence-based practices"
+    is_islamic = mode not in ("secular", "clinical_scientific")
+    system_prompt = DHIKR_COMMENTARY_PROMPT if is_islamic else CLINICAL_SCIENTIFIC_COMMENTARY_PROMPT
+    practice_type = "dhikr and du'a practices" if is_islamic else "clinical & scientific practices"
 
     user_prompt = (
         f"The user is feeling: {emotional_state}.\n"
@@ -569,8 +573,8 @@ def display_dhikr(entries: list) -> None:
         print(f"  🔁 {repetitions}")
 
 
-def display_secular(entries: list) -> None:
-    """Prints secular practice entries in a clean, readable terminal format."""
+def display_clinical_scientific(entries: list) -> None:
+    """Prints clinical & scientific practice entries in a clean, readable terminal format."""
     for i, (name, instruction, why, source) in enumerate(entries, 1):
         print(f"\n  {'─' * 44}")
         print(f"  Practice {i}: {name}")
@@ -578,6 +582,9 @@ def display_secular(entries: list) -> None:
         print(f"\n  How: {instruction}")
         print(f"\n  Why it works: {why}")
         print(f"\n  📚 Source: {source}")
+
+# Backwards-compatible alias
+display_secular = display_clinical_scientific
 
 
 # ─────────────────────────────────────────────
@@ -638,7 +645,7 @@ async def main():
     # ── Mode selection ──
     print("\nHow would you like your suggestions today?")
     print("  1. Islamic (Dhikr & Du'a)")
-    print("  2. Secular (Evidence-based practices only)")
+    print("  2. Clinical & Scientific (Evidence-based practices only)")
     print()
 
     while True:
@@ -648,8 +655,8 @@ async def main():
             table = DHIKR_TABLE
             break
         elif mode_input == "2":
-            mode = "secular"
-            table = SECULAR_TABLE
+            mode = "clinical_scientific"
+            table = CLINICAL_SCIENTIFIC_TABLE
             break
         else:
             print("Please enter 1 or 2.")
@@ -660,7 +667,7 @@ async def main():
 
     commentary_agent = Agent(
         name="SakinaDhikrGuide",
-        model=os.environ.get("GEMINI_MODEL", "gemini-2.5-flash"),
+        model=os.environ.get("GEMINI_MODEL", "gemini-2.0-flash"),
         instruction=system_prompt,
     )
 
@@ -738,7 +745,7 @@ async def main():
     if mode == "islamic":
         display_dhikr(entries)
     else:
-        display_secular(entries)
+        display_clinical_scientific(entries)
 
     print(f"\n  {'─' * 44}")
     print("  May this bring you stillness. 🌿")

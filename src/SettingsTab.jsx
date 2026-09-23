@@ -59,11 +59,13 @@ export default function SettingsTab({ isDark, onNavigate, onLogout }) {
     setIsVerifying(false);
 
     if (result.valid) {
+      const activeModel = result.model || selectedModel;
       setStoredApiKey(trimmed);
-      setStoredModel(selectedModel);
+      setStoredModel(activeModel);
+      setSelectedModel(activeModel);
       setKeyStatus("valid");
-      setKeyStatusMsg(`Active & connected to ${selectedModel}`);
-      showToast("✓ Gemini API key verified & saved!");
+      setKeyStatusMsg(`Active & connected to ${activeModel}`);
+      showToast(`✓ Gemini API key verified & connected to ${activeModel}!`);
     } else {
       setKeyStatus("invalid");
       setKeyStatusMsg(result.message);

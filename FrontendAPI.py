@@ -11,6 +11,7 @@ import os
 os.environ["OTEL_SDK_DISABLED"] = "true"
 import sys
 import json
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Header, Request, status
@@ -33,7 +34,9 @@ from google.auth.transport import requests as google_requests
 # SQLite database layer
 from database import (
     init_db, upsert_user, get_user,
-    add_mood_log, get_recent_mood_logs,
+    add_mood_log, get_recent_mood_logs, get_all_mood_logs,
+    add_journal_entry, get_journal_entries, get_journal_entry,
+    update_journal_entry, delete_journal_entry,
     export_user_data, delete_user_data,
 )
 
@@ -45,12 +48,12 @@ from mcp.client.stdio import stdio_client
 from system_prompt import SYSTEM_PROMPT
 from dhikr import (
     DHIKR_TABLE, SECULAR_TABLE,
-    DHIKR_COMMENTARY_PROMPT, SECULAR_COMMENTARY_PROMPT,
+    DHIKR_COMMENTARY_PROMPT, CLINICAL_SCIENTIFIC_COMMENTARY_PROMPT,
     resolve_emotion_with_ai,
     get_practice_personalizations,
     get_ai_commentary,
 )
-from mood_tracker import log_and_synthesize, get_dashboard, TREND_COMMENTARY_PROMPT
+from mood_tracker import log_and_synthesize, get_dashboard, analyze_trends, TREND_COMMENTARY_PROMPT
 
 load_dotenv()
 
@@ -58,9 +61,8 @@ logger = logging.getLogger("sakina.api")
 
 APP_NAME = "Sakina"
 DEFAULT_USER_ID = "default_user"
-DEFAULT_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+DEFAULT_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
 
-CHAT_SESSION = "chat_session"
 DHIKR_SESSION = "dhikr_session"
 RESOLVER_SESSION = "resolver_session"
 MOOD_SESSION = "mood_session"
@@ -68,6 +70,9 @@ MOOD_SESSION = "mood_session"
 # Global references for shared services and MCP tools
 session_service = InMemorySessionService()
 mcp_agent_tools: List[Any] = []
+
+# In-memory mood commentary cache: (user_id, normalized_mode, latest_ts, log_count) -> commentary
+mood_commentary_cache: Dict[str, str] = {}
 
 
 # ─────────────────────────────────────────────
@@ -86,6 +91,9 @@ def get_effective_api_key(header_key: Optional[str] = None) -> Optional[str]:
 def create_llm_instance(model_name: str, api_key: Optional[str] = None):
     """Creates a model instance targeting the specific API key and active model."""
     target_model = model_name if model_name and model_name.strip() else DEFAULT_MODEL
+    # Sanitize any legacy unsupported model identifiers
+    if "gemini-2.5" in target_model:
+        target_model = DEFAULT_MODEL
     try:
         cls = LLMRegistry.resolve(target_model)
     except Exception:
@@ -133,6 +141,17 @@ def create_mood_runner(api_key: Optional[str] = None, model_name: Optional[str] 
     )
 
 
+async def prune_session_history(user_id: str, session_id: str, max_messages: int = 14) -> None:
+    """Prune session history to keep memory bounded and response fast."""
+    try:
+        session = await session_service.get_session(app_name=APP_NAME, user_id=user_id, session_id=session_id)
+        if session and hasattr(session, "history") and session.history:
+            if len(session.history) > max_messages:
+                session.history = session.history[-max_messages:]
+    except Exception as e:
+        logger.debug(f"Session history prune notice: {e}")
+
+
 # ─────────────────────────────────────────────
 # LIFECYCLE: CONNECT TO MCP SERVER ON STARTUP
 # ─────────────────────────────────────────────
@@ -143,45 +162,61 @@ async def lifespan(app: FastAPI):
     # Initialise SQLite database
     init_db()
 
-    # Configure parameters to spawn server.py as a background protocol worker
-    server_params = StdioServerParameters(
-        command=sys.executable,
-        args=[os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.py")],
-        env=os.environ.copy(),
-    )
+    ctx = None
+    session_ctx = None
 
-    ctx = stdio_client(server_params)
-    read, write = await ctx.__aenter__()
+    try:
+        # Configure parameters to spawn server.py as a background protocol worker
+        server_params = StdioServerParameters(
+            command=sys.executable,
+            args=[os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.py")],
+            env=os.environ.copy(),
+        )
 
-    session_ctx = ClientSession(read, write)
-    mcp_session = await session_ctx.__aenter__()
-    await mcp_session.initialize()
+        ctx = stdio_client(server_params)
+        read, write = await ctx.__aenter__()
 
-    # Fetch available tools over the protocol channel
-    mcp_tools_response = await mcp_session.list_tools()
+        session_ctx = ClientSession(read, write)
+        mcp_session = await session_ctx.__aenter__()
+        await mcp_session.initialize()
 
-    agent_tools = []
-    for tool in mcp_tools_response.tools:
-        def make_mcp_call(tool_name=tool.name):
-            async def async_wrapper(**kwargs):
-                res = await mcp_session.call_tool(tool_name, arguments=kwargs)
-                return "".join(
-                    content.text for content in res.content if hasattr(content, "text")
-                )
-            return async_wrapper
+        # Fetch available tools over the protocol channel
+        mcp_tools_response = await mcp_session.list_tools()
 
-        tool_func = make_mcp_call(tool.name)
-        tool_func.__name__ = tool.name
-        tool_func.__doc__ = tool.description or f"MCP tool: {tool.name}"
-        agent_tools.append(tool_func)
+        agent_tools = []
+        for tool in mcp_tools_response.tools:
+            def make_mcp_call(tool_name=tool.name):
+                async def async_wrapper(**kwargs):
+                    res = await mcp_session.call_tool(tool_name, arguments=kwargs)
+                    return "".join(
+                        content.text for content in res.content if hasattr(content, "text")
+                    )
+                return async_wrapper
 
-    mcp_agent_tools = agent_tools
+            tool_func = make_mcp_call(tool.name)
+            tool_func.__name__ = tool.name
+            tool_func.__doc__ = tool.description or f"MCP tool: {tool.name}"
+            agent_tools.append(tool_func)
+
+        mcp_agent_tools = agent_tools
+        logger.info("MCP server connected successfully with %d tools.", len(agent_tools))
+    except Exception as e:
+        logger.warning(f"MCP server initialization encountered notice (proceeding in standalone mode): {e}")
+        mcp_agent_tools = []
 
     yield
 
     # Clean cleanup on application exit
-    await session_ctx.__aexit__(None, None, None)
-    await ctx.__aexit__(None, None, None)
+    if session_ctx:
+        try:
+            await session_ctx.__aexit__(None, None, None)
+        except Exception:
+            pass
+    if ctx:
+        try:
+            await ctx.__aexit__(None, None, None)
+        except Exception:
+            pass
 
 
 # Initialize FastAPI with the lifespan orchestrator
@@ -231,6 +266,18 @@ class MoodRequest(BaseModel):
     note: str = ""
     mode: str = "islamic"
 
+class JournalEntryCreate(BaseModel):
+    title: str
+    content: str
+    mood: Optional[str] = ""
+    prompt: Optional[str] = ""
+
+class JournalEntryUpdate(BaseModel):
+    title: str
+    content: str
+    mood: Optional[str] = ""
+    prompt: Optional[str] = ""
+
 
 # ─────────────────────────────────────────────
 # API KEY VALIDATION ENDPOINT
@@ -242,7 +289,7 @@ async def verify_api_key_endpoint(
     x_gemini_model: Optional[str] = Header(None, alias="X-Gemini-Model"),
 ):
     key_to_test = req.key.strip() if req.key else (x_gemini_api_key.strip() if x_gemini_api_key else "")
-    model_to_test = req.model or x_gemini_model or DEFAULT_MODEL
+    primary_model = req.model or x_gemini_model or DEFAULT_MODEL
 
     if not key_to_test:
         raise HTTPException(
@@ -250,36 +297,55 @@ async def verify_api_key_endpoint(
             detail="No API key provided to verify.",
         )
 
+    # Candidate models to try in case the key is tied to a specific API namespace/endpoint
+    candidate_models = [primary_model]
+    for fallback in ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash", "gemini-1.5-pro"]:
+        if fallback not in candidate_models:
+            candidate_models.append(fallback)
+
+    last_err = None
     try:
         client = Client(api_key=key_to_test)
-        # Lightweight ping to test key and model connectivity
-        test_response = client.models.generate_content(
-            model=model_to_test,
-            contents="Respond with only: OK",
-        )
-        if test_response and test_response.text:
-            return KeyVerifyResponse(
-                valid=True,
-                model=model_to_test,
-                message=f"Gemini API key is active and connected to {model_to_test}.",
-            )
-        else:
-            return KeyVerifyResponse(
-                valid=True,
-                model=model_to_test,
-                message="Key connected successfully.",
-            )
     except Exception as e:
-        err_msg = str(e)
-        if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
-            detail = "API key is valid, but current quota limit (429) was reached. Please wait a few minutes."
-        elif "API_KEY_INVALID" in err_msg or "400" in err_msg or "403" in err_msg or "not valid" in err_msg:
-            detail = "Invalid Google Gemini API key. Please verify your key on Google AI Studio."
-        elif "404" in err_msg or "NOT_FOUND" in err_msg:
-            detail = f"Model {model_to_test} not found. Please use {DEFAULT_MODEL}."
-        else:
-            detail = f"Verification failed: {err_msg}"
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to initialize Gemini client: {str(e)}",
+        )
+
+    for candidate in candidate_models:
+        try:
+            test_response = client.models.generate_content(
+                model=candidate,
+                contents="Respond with only: OK",
+            )
+            if test_response:
+                return KeyVerifyResponse(
+                    valid=True,
+                    model=candidate,
+                    message=f"Gemini API key is active and connected to {candidate}.",
+                )
+        except Exception as e:
+            last_err = e
+            err_msg = str(e)
+            if "API_KEY_INVALID" in err_msg or "400" in err_msg or "403" in err_msg or "not valid" in err_msg:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid Google Gemini API key. Please verify your key on Google AI Studio.",
+                )
+            if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="API key is valid, but current quota limit (429) was reached. Please wait a few minutes.",
+                )
+            # If 404 / NOT_FOUND, continue trying candidate models
+            continue
+
+    err_msg = str(last_err) if last_err else "Unknown error"
+    if "404" in err_msg or "NOT_FOUND" in err_msg:
+        detail = f"Could not find a supported Gemini model for this API key. Tested: {', '.join(candidate_models)}."
+    else:
+        detail = f"Verification failed: {err_msg}"
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
 
 
 # ─────────────────────────────────────────────
@@ -350,22 +416,26 @@ async def post_greeting_endpoint(
         return {"response": fallback_greeting}
 
     user_id = x_user_id or DEFAULT_USER_ID
+    session_id = f"chat_{user_id}"
     runner = create_chat_runner(api_key=effective_key, model_name=x_gemini_model)
 
     try:
-        response = runner.run_async(
-            user_id=user_id,
-            session_id=CHAT_SESSION,
-            new_message=types.Content(
-                role="user",
-                parts=[types.Part(text="Greet the user warmly with your opening message.")]
+        async def _call_greeting():
+            response = runner.run_async(
+                user_id=user_id,
+                session_id=session_id,
+                new_message=types.Content(
+                    role="user",
+                    parts=[types.Part(text="Greet the user warmly with your opening message.")]
+                )
             )
-        )
-        final_text = ""
-        async for event in response:
-            if event.is_final_response() and event.content and event.content.parts:
-                final_text = event.content.parts[0].text
-        
+            final_text = ""
+            async for event in response:
+                if event.is_final_response() and event.content and event.content.parts:
+                    final_text = event.content.parts[0].text
+            return final_text
+
+        final_text = await asyncio.wait_for(_call_greeting(), timeout=20.0)
         return {"response": final_text if final_text else fallback_greeting}
     except Exception as e:
         logger.warning(f"Greeting generation fallback: {e}")
@@ -390,26 +460,37 @@ async def post_chat_endpoint(
         )
 
     user_id = x_user_id or DEFAULT_USER_ID
+    session_id = f"chat_{user_id}"
     runner = create_chat_runner(api_key=effective_key, model_name=x_gemini_model)
 
     try:
-        response = runner.run_async(
-            user_id=user_id,
-            session_id=CHAT_SESSION,
-            new_message=types.Content(
-                role="user",
-                parts=[types.Part(text=req.message)]
+        await prune_session_history(user_id=user_id, session_id=session_id, max_messages=14)
+
+        async def _call_chat():
+            response = runner.run_async(
+                user_id=user_id,
+                session_id=session_id,
+                new_message=types.Content(
+                    role="user",
+                    parts=[types.Part(text=req.message)]
+                )
             )
-        )
-        final_text = ""
-        async for event in response:
-            if event.is_final_response() and event.content and event.content.parts:
-                final_text = event.content.parts[0].text
-        
+            final_text = ""
+            async for event in response:
+                if event.is_final_response() and event.content and event.content.parts:
+                    final_text = event.content.parts[0].text
+            return final_text
+
+        final_text = await asyncio.wait_for(_call_chat(), timeout=25.0)
         if not final_text:
             final_text = "I am listening. Please continue."
             
         return ChatResponse(response=final_text)
+    except asyncio.TimeoutError:
+        logger.warning("Chat generation timed out after 25s.")
+        return ChatResponse(
+            response="I am taking a moment to reflect with you. Please feel free to rephrase or continue sharing whenever you are ready."
+        )
     except Exception as e:
         err_str = str(e)
         if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
@@ -438,40 +519,48 @@ async def post_dhikr_endpoint(
     effective_key = get_effective_api_key(x_gemini_api_key)
     runner = create_chat_runner(api_key=effective_key, model_name=x_gemini_model) if effective_key else None
 
+    is_islamic = req.mode not in ("secular", "clinical_scientific")
+
     # Step 1: Resolve emotion
     input_for_resolution = req.free_text if req.free_text.strip() else req.emotion
     if req.emotion.strip():
         emotion = req.emotion.strip()
     elif runner:
         try:
-            emotion = await resolve_emotion_with_ai(input_for_resolution, runner, RESOLVER_SESSION)
+            emotion = await asyncio.wait_for(
+                resolve_emotion_with_ai(input_for_resolution, runner, RESOLVER_SESSION),
+                timeout=15.0,
+            )
         except Exception:
             emotion = "anxiety"
     else:
         emotion = "anxiety"
 
     # Step 2: Fetch static practice entries from the table
-    table = DHIKR_TABLE if req.mode == "islamic" else SECULAR_TABLE
+    table = DHIKR_TABLE if is_islamic else SECULAR_TABLE
     raw_practices = table.get(emotion, table.get("anxiety", []))
 
     # Step 3: Get AI-generated personalization notes (or fallback)
     personalization_notes = []
     if runner:
         try:
-            personalization_notes = await get_practice_personalizations(
-                emotional_state=emotion,
-                free_text=req.free_text,
-                entries=raw_practices,
-                mode=req.mode,
-                runner=runner,
-                session_id=DHIKR_SESSION,
+            personalization_notes = await asyncio.wait_for(
+                get_practice_personalizations(
+                    emotional_state=emotion,
+                    free_text=req.free_text,
+                    entries=raw_practices,
+                    mode="islamic" if is_islamic else "clinical_scientific",
+                    runner=runner,
+                    session_id=DHIKR_SESSION,
+                ),
+                timeout=20.0,
             )
         except Exception:
             personalization_notes = []
 
     # Step 4: Merge static data + personalization notes
     practices = []
-    if req.mode == "islamic":
+    if is_islamic:
         for i, entry in enumerate(raw_practices):
             arabic, transliteration, translation, reference, repetitions = entry
             note = personalization_notes[i] if i < len(personalization_notes) else ""
@@ -499,11 +588,14 @@ async def post_dhikr_endpoint(
     commentary = ""
     if runner:
         try:
-            commentary = await get_ai_commentary(
-                emotional_state=emotion,
-                mode=req.mode,
-                runner=runner,
-                session_id=DHIKR_SESSION,
+            commentary = await asyncio.wait_for(
+                get_ai_commentary(
+                    emotional_state=emotion,
+                    mode="islamic" if is_islamic else "clinical_scientific",
+                    runner=runner,
+                    session_id=DHIKR_SESSION,
+                ),
+                timeout=20.0,
             )
         except Exception:
             commentary = ""
@@ -511,8 +603,8 @@ async def post_dhikr_endpoint(
     if not commentary:
         commentary = (
             "Here are practices tailored to bring tranquility and presence to your heart."
-            if req.mode == "islamic"
-            else "Here are evidence-based practices designed to help center your nervous system."
+            if is_islamic
+            else "Here are clinical & scientific practices designed to help center your nervous system."
         )
 
     return DhikrResponse(commentary=commentary, practices=practices, emotion=emotion)
@@ -533,17 +625,32 @@ async def post_mood_endpoint(
         effective_key = get_effective_api_key(x_gemini_api_key)
         runner = create_mood_runner(api_key=effective_key, model_name=x_gemini_model)
 
-        data = await log_and_synthesize(
-            emotional_state=req.emotion,
-            intensity=req.intensity,
-            note=req.note,
-            mode=req.mode,
-            runner=runner,
-            session_id=MOOD_SESSION,
-            user_id=user_id,
+        normalized_mode = "islamic" if req.mode not in ("secular", "clinical_scientific") else "clinical_scientific"
+
+        data = await asyncio.wait_for(
+            log_and_synthesize(
+                emotional_state=req.emotion,
+                intensity=req.intensity,
+                note=req.note,
+                mode=normalized_mode,
+                runner=runner,
+                session_id=MOOD_SESSION,
+                user_id=user_id,
+            ),
+            timeout=25.0,
         )
+
+        # Update cache for instant subsequent dashboard retrieval
+        recent = data.get("recent_entries", [])
+        latest_ts = recent[0]["timestamp"] if recent else "new"
+        all_logs = get_all_mood_logs(user_id=user_id)
+        cache_key = f"{user_id}:{normalized_mode}:{latest_ts}:{len(all_logs)}"
+        if data.get("commentary"):
+            mood_commentary_cache[cache_key] = data["commentary"]
+
         return data
     except Exception as e:
+        logger.error(f"Error in post_mood_endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -556,17 +663,142 @@ async def get_mood_endpoint(
 ):
     try:
         user_id = x_user_id.strip() if (x_user_id and x_user_id.strip()) else DEFAULT_USER_ID
+        normalized_mode = "islamic" if mode not in ("secular", "clinical_scientific") else "clinical_scientific"
+
+        # Check cached commentary
+        recent_logs = get_recent_mood_logs(user_id=user_id, limit=7)
+        latest_ts = recent_logs[-1]["timestamp"] if recent_logs else "empty"
+        all_logs = get_all_mood_logs(user_id=user_id)
+        log_count = len(all_logs)
+        cache_key = f"{user_id}:{normalized_mode}:{latest_ts}:{log_count}"
+
+        if cache_key in mood_commentary_cache:
+            trends = analyze_trends(user_id=user_id, days=30)
+            return {
+                "trends": trends,
+                "commentary": mood_commentary_cache[cache_key],
+                "recent_entries": recent_logs,
+            }
+
         effective_key = get_effective_api_key(x_gemini_api_key)
         runner = create_mood_runner(api_key=effective_key, model_name=x_gemini_model)
 
-        data = await get_dashboard(
-            mode=mode,
-            runner=runner,
-            session_id=MOOD_SESSION,
-            user_id=user_id,
+        data = await asyncio.wait_for(
+            get_dashboard(
+                mode=normalized_mode,
+                runner=runner,
+                session_id=MOOD_SESSION,
+                user_id=user_id,
+            ),
+            timeout=25.0,
         )
+
+        if data.get("commentary"):
+            mood_commentary_cache[cache_key] = data["commentary"]
+
         return data
     except Exception as e:
+        logger.warning(f"Dashboard load fallback: {e}")
+        # Return fallback dashboard instead of 500
+        trends = analyze_trends(user_id=user_id, days=30)
+        return {
+            "trends": trends,
+            "commentary": "Taking time to notice your patterns is a meaningful step toward balance and clarity. Keep checking in with yourself as you navigate each day.",
+            "recent_entries": get_recent_mood_logs(user_id=user_id, limit=7),
+        }
+
+
+# ─────────────────────────────────────────────
+# JOURNAL ENDPOINTS
+# ─────────────────────────────────────────────
+@app.get("/api/journal")
+async def get_journal_endpoint(
+    search: Optional[str] = "",
+    mood: Optional[str] = "",
+    limit: int = 100,
+    offset: int = 0,
+    x_user_id: Optional[str] = Header(None, alias="X-User-Id"),
+):
+    try:
+        user_id = x_user_id.strip() if (x_user_id and x_user_id.strip()) else DEFAULT_USER_ID
+        entries = get_journal_entries(
+            user_id=user_id,
+            search=search or "",
+            mood=mood or "",
+            limit=limit,
+            offset=offset
+        )
+        return {"entries": entries}
+    except Exception as e:
+        logger.error(f"Error fetching journal entries: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/journal")
+async def create_journal_endpoint(
+    req: JournalEntryCreate,
+    x_user_id: Optional[str] = Header(None, alias="X-User-Id"),
+):
+    try:
+        user_id = x_user_id.strip() if (x_user_id and x_user_id.strip()) else DEFAULT_USER_ID
+        if not req.title.strip() and not req.content.strip():
+            raise HTTPException(status_code=400, detail="Journal entry cannot be empty")
+        entry = add_journal_entry(
+            user_id=user_id,
+            title=req.title.strip() or "Untitled Reflection",
+            content=req.content,
+            mood=req.mood or "",
+            prompt=req.prompt or ""
+        )
+        return entry
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating journal entry: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.put("/api/journal/{entry_id}")
+async def update_journal_endpoint(
+    entry_id: int,
+    req: JournalEntryUpdate,
+    x_user_id: Optional[str] = Header(None, alias="X-User-Id"),
+):
+    try:
+        user_id = x_user_id.strip() if (x_user_id and x_user_id.strip()) else DEFAULT_USER_ID
+        updated = update_journal_entry(
+            entry_id=entry_id,
+            user_id=user_id,
+            title=req.title.strip() or "Untitled Reflection",
+            content=req.content,
+            mood=req.mood or "",
+            prompt=req.prompt or ""
+        )
+        if not updated:
+            raise HTTPException(status_code=404, detail="Journal entry not found")
+        return updated
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating journal entry: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/api/journal/{entry_id}")
+async def delete_journal_endpoint(
+    entry_id: int,
+    x_user_id: Optional[str] = Header(None, alias="X-User-Id"),
+):
+    try:
+        user_id = x_user_id.strip() if (x_user_id and x_user_id.strip()) else DEFAULT_USER_ID
+        deleted = delete_journal_entry(entry_id=entry_id, user_id=user_id)
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Journal entry not found")
+        return {"status": "deleted", "id": entry_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting journal entry: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

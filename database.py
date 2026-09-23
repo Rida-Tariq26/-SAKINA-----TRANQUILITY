@@ -12,6 +12,7 @@ This DB is authoritative for user data export / deletion (GDPR / CCPA).
 import sqlite3
 import os
 from datetime import datetime, timezone
+from typing import Any
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sakina.db")
 
@@ -51,7 +52,22 @@ def init_db() -> None:
             FOREIGN KEY (user_id) REFERENCES users(user_id)
         );
 
+        CREATE TABLE IF NOT EXISTS journal_entries (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id    TEXT    NOT NULL,
+            title      TEXT    NOT NULL,
+            content    TEXT    NOT NULL,
+            mood       TEXT    DEFAULT '',
+            prompt     TEXT    DEFAULT '',
+            created_at TEXT    NOT NULL,
+            updated_at TEXT    NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(user_id)
+        );
+
         CREATE INDEX IF NOT EXISTS idx_mood_user ON mood_logs(user_id);
+        CREATE INDEX IF NOT EXISTS idx_mood_user_timestamp ON mood_logs(user_id, timestamp DESC);
+        CREATE INDEX IF NOT EXISTS idx_journal_user ON journal_entries(user_id);
+        CREATE INDEX IF NOT EXISTS idx_journal_user_created ON journal_entries(user_id, created_at DESC);
     """)
     now = datetime.now(timezone.utc).isoformat()
     conn.execute("""
@@ -149,6 +165,136 @@ def get_all_mood_logs(user_id: str) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def get_mood_logs_since(user_id: str, since_iso: str) -> list[dict]:
+    """Return mood entries for this user since a given ISO timestamp/date, ordered chronologically."""
+    user_id = user_id or "default_user"
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT * FROM mood_logs WHERE user_id = ? AND timestamp >= ? ORDER BY timestamp ASC",
+        (user_id, since_iso)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+# ─────────────────────────────────────────────
+# JOURNAL OPERATIONS
+# ─────────────────────────────────────────────
+def add_journal_entry(
+    user_id: str,
+    title: str,
+    content: str,
+    mood: str = "",
+    prompt: str = ""
+) -> dict:
+    """Insert a new journal entry for the user and return the full dict."""
+    user_id = user_id or "default_user"
+    now = datetime.now(timezone.utc).isoformat()
+    conn = get_db()
+    conn.execute("""
+        INSERT OR IGNORE INTO users (user_id, email, name, picture, created_at)
+        VALUES (?, 'guest@sakina.local', 'User', '', ?)
+    """, (user_id, now))
+    cursor = conn.execute("""
+        INSERT INTO journal_entries (user_id, title, content, mood, prompt, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (user_id, title, content, mood, prompt, now, now))
+    entry_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return {
+        "id": entry_id,
+        "user_id": user_id,
+        "title": title,
+        "content": content,
+        "mood": mood,
+        "prompt": prompt,
+        "created_at": now,
+        "updated_at": now,
+    }
+
+
+def get_journal_entries(
+    user_id: str,
+    search: str = "",
+    mood: str = "",
+    limit: int = 100,
+    offset: int = 0
+) -> list[dict]:
+    """Retrieve journal entries with optional search and mood filters, newest first."""
+    user_id = user_id or "default_user"
+    conn = get_db()
+    query = "SELECT * FROM journal_entries WHERE user_id = ?"
+    params: list[Any] = [user_id]
+
+    if mood and mood.strip():
+        query += " AND mood = ?"
+        params.append(mood.strip())
+
+    if search and search.strip():
+        query += " AND (title LIKE ? OR content LIKE ? OR prompt LIKE ?)"
+        term = f"%{search.strip()}%"
+        params.extend([term, term, term])
+
+    query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
+    params.extend([limit, offset])
+
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_journal_entry(entry_id: int, user_id: str) -> dict | None:
+    """Fetch a single journal entry belonging to user_id."""
+    user_id = user_id or "default_user"
+    conn = get_db()
+    row = conn.execute(
+        "SELECT * FROM journal_entries WHERE id = ? AND user_id = ?",
+        (entry_id, user_id)
+    ).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def update_journal_entry(
+    entry_id: int,
+    user_id: str,
+    title: str,
+    content: str,
+    mood: str = "",
+    prompt: str = ""
+) -> dict | None:
+    """Update an existing journal entry for user_id."""
+    user_id = user_id or "default_user"
+    now = datetime.now(timezone.utc).isoformat()
+    conn = get_db()
+    cursor = conn.execute("""
+        UPDATE journal_entries
+        SET title = ?, content = ?, mood = ?, prompt = ?, updated_at = ?
+        WHERE id = ? AND user_id = ?
+    """, (title, content, mood, prompt, now, entry_id, user_id))
+    conn.commit()
+    rows_affected = cursor.rowcount
+    conn.close()
+    if rows_affected == 0:
+        return None
+    return get_journal_entry(entry_id, user_id)
+
+
+def delete_journal_entry(entry_id: int, user_id: str) -> bool:
+    """Delete a journal entry belonging to user_id."""
+    user_id = user_id or "default_user"
+    conn = get_db()
+    cursor = conn.execute(
+        "DELETE FROM journal_entries WHERE id = ? AND user_id = ?",
+        (entry_id, user_id)
+    )
+    conn.commit()
+    deleted = cursor.rowcount > 0
+    conn.close()
+    return deleted
+
+
 # ─────────────────────────────────────────────
 # DATA EXPORT (GDPR / CCPA — right to portability)
 # ─────────────────────────────────────────────
@@ -162,12 +308,17 @@ def export_user_data(user_id: str) -> dict:
         "SELECT * FROM mood_logs WHERE user_id = ? ORDER BY timestamp",
         (user_id,)
     ).fetchall()
+    journal_rows = conn.execute(
+        "SELECT * FROM journal_entries WHERE user_id = ? ORDER BY created_at DESC",
+        (user_id,)
+    ).fetchall()
     conn.close()
 
     return {
-        "exported_at": datetime.now(timezone.utc).isoformat(),
-        "user":        dict(user_row) if user_row else None,
-        "mood_logs":   [dict(r) for r in log_rows],
+        "exported_at":     datetime.now(timezone.utc).isoformat(),
+        "user":            dict(user_row) if user_row else None,
+        "mood_logs":       [dict(r) for r in log_rows],
+        "journal_entries": [dict(r) for r in journal_rows],
     }
 
 
@@ -176,13 +327,13 @@ def export_user_data(user_id: str) -> dict:
 # ─────────────────────────────────────────────
 def delete_user_data(user_id: str) -> None:
     """
-    Permanently delete the user's mood logs and anonymise the user record
-    (we keep a tombstone row so the user_id stays reserved and foreign-key
-    constraints remain satisfied, but all PII is removed).
+    Permanently delete the user's mood logs and journal entries,
+    and anonymise the user record.
     """
     now = datetime.now(timezone.utc).isoformat()
     conn = get_db()
     conn.execute("DELETE FROM mood_logs WHERE user_id = ?", (user_id,))
+    conn.execute("DELETE FROM journal_entries WHERE user_id = ?", (user_id,))
     conn.execute("""
         UPDATE users
         SET email      = '[deleted]',
@@ -193,3 +344,4 @@ def delete_user_data(user_id: str) -> None:
     """, (now, user_id))
     conn.commit()
     conn.close()
+

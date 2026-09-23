@@ -136,7 +136,7 @@ export default function PrivacyPolicy({ isDark, onBack }) {
         <Ul t={t} items={[
           "Mood entries you log (emotional state, intensity, optional notes)",
           "Timestamps of when you use the app",
-          "Your selected mode (Islamic / secular) and theme preference",
+          "Your selected mode (Islamic / Clinical & Scientific) and theme preference",
         ]} />
 
         <P><strong style={{ color: t.textPrimary }}>Technical Data (Essential Cookies only)</strong></P>

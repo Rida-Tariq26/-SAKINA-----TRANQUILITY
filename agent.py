@@ -181,7 +181,7 @@ async def lifespan(app: FastAPI):
 
         sakina_agent = Agent(
             name="Sakina",
-            model=os.environ.get("GEMINI_MODEL", "gemini-2.5-flash"),
+            model=os.environ.get("GEMINI_MODEL", "gemini-2.0-flash"),
             instruction=SYSTEM_PROMPT,
             tools=agent_tools,
         )
