@@ -881,6 +881,23 @@ const ChatTab = ({ isDark, onNavigate }) => {
         <div ref={bottomRef} />
       </div>
 
+      {/* Disclaimer */}
+      <div style={{
+        padding: "7px 1.8rem",
+        textAlign: "center",
+        fontSize: "0.72rem",
+        color: t.textMuted,
+        lineHeight: 1.4,
+        fontWeight: 300,
+        background: t.glass,
+        borderTop: `1px solid ${t.border}`,
+        position: "relative",
+        zIndex: 1,
+        letterSpacing: "0.01em",
+      }}>
+        Sakina is an AI wellness companion for gentle reflection, not a substitute for professional mental health care or emergency services.
+      </div>
+
       {/* Input area */}
       <div style={{
         padding: "1rem 1.8rem 1.6rem",
@@ -1272,20 +1289,26 @@ const AppPage = ({ isDark, onToggleTheme, onNavigate, onLogout }) => {
       }}>
         {/* Tab header */}
         <div style={{
-          padding: "1.1rem 1.8rem",
+          padding: "0.8rem 1.8rem",
           borderBottom: `1px solid ${t.border}`,
           display: "flex",
           alignItems: "center",
+          justifyContent: "space-between",
           gap: "0.7rem",
           background: t.glass,
           backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
           boxShadow: `inset 0 -1px 0 ${t.border}`,
         }}>
-          <span style={{ fontSize: "0.65rem", color: t.glow }}>{navItems.find(n => n.key === tab)?.icon}</span>
-          <span style={{ fontSize: "0.72rem", letterSpacing: "0.12em", textTransform: "uppercase", color: t.textMuted }}>
-            {navItems.find(n => n.key === tab)?.label}
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.7rem" }}>
+            <span style={{ fontSize: "0.65rem", color: t.glow }}>{navItems.find(n => n.key === tab)?.icon}</span>
+            <span style={{ fontSize: "0.72rem", letterSpacing: "0.12em", textTransform: "uppercase", color: t.textMuted }}>
+              {navItems.find(n => n.key === tab)?.label}
+            </span>
+          </div>
+
+          {/* Soundscape & Music control in top header area */}
+          <AudioPlayer isDark={isDark} tokensRef={tokens} />
         </div>
 
         <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
@@ -1316,9 +1339,6 @@ const AppPage = ({ isDark, onToggleTheme, onNavigate, onLogout }) => {
           </div>
         </div>
       </div>
-
-      {/* Floating / Docked Soundscape Audio Player (Spotify & Local Audio) */}
-      <AudioPlayer isDark={isDark} tokensRef={tokens} />
     </div>
   );
 };

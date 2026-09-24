@@ -327,18 +327,15 @@ export default function AudioPlayer({ isDark, tokensRef }) {
       />
 
       {/* ─────────────────────────────────────────────
-          DOCKED SOUNDSCAPE BAR (Bottom Floating Pill)
+          TOP HEADER INTEGRATED SOUNDSCAPE CONTROL
           ───────────────────────────────────────────── */}
       <div
         style={{
-          position: "fixed",
-          bottom: "18px",
-          right: "24px",
-          zIndex: 90,
+          position: "relative",
           display: "flex",
           alignItems: "center",
-          gap: "12px",
-          padding: "8px 16px",
+          gap: "10px",
+          padding: "5px 14px",
           background: t.glassCard,
           backdropFilter: "blur(20px) saturate(1.5)",
           WebkitBackdropFilter: "blur(20px) saturate(1.5)",
@@ -346,6 +343,7 @@ export default function AudioPlayer({ isDark, tokensRef }) {
           borderRadius: "50px",
           boxShadow: activeSource ? t.shadowGlow : t.shadow,
           transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          marginLeft: "auto",
         }}
       >
         {/* Source Status & Play Icon */}

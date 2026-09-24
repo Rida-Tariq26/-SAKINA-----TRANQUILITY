@@ -181,12 +181,22 @@ Sakina supports three flexible conversational modes, dynamically chosen based on
 - **AI-Powered Synthesis:** Generates compassionate reflections identifying emotional trajectories, triggers, and growth patterns.
 - **Interactive Analytics:** Frontend dashboard visualizes historical intensity trends and emotional distributions.
 
-### 4. Defense-in-Depth Crisis Detection
+### 4. Private Journal & Reflective Sanctuary
+- **Curated Prompt Engine:** Spark reflections with categorized prompts spanning Self-Reflection, Emotional Awareness, Gratitude, Personal Growth, Stress & Surrender, and Spiritual Tranquility.
+- **Unified Design System:** Clean mood tagging (*Calm, Grateful, Reflective, Peaceful, Hopeful, Content, Overwhelmed, Anxious, Heavy*) reusing the established option pill UI pattern across Mood Tracker and Dhikr modules.
+- **Zen Mode & Export:** Distraction-free writing canvas with real-time word counting, reading time estimates, local draft auto-saving, and Markdown export capabilities.
+
+### 5. Header-Integrated Soundscape & Audio Player
+- **Seamless Navigation Bar Placement:** Positioned at the top of the interface within the header area to keep soundscape controls readily accessible without obscuring conversation flow.
+- **Dual Audio Sources:** Local offline audio file upload (MP3, WAV, OGG, M4A, FLAC) and Spotify iframe player embedding with curated peaceful recitations and focus playlists.
+
+### 6. Defense-in-Depth Crisis Detection & In-Chat Disclaimer
+- **In-Chat Wellness Disclaimer:** Reassuring, unobtrusive disclaimer positioned directly above the message input box clarifying Sakina's role as a supportive wellness tool.
 - **Deterministic Bypassing:** Explicit suicidal intent or self-harm keywords trigger immediate Tier-3 response without calling the model.
 - **Geolocation-Aware Hotlines:** Dynamically surfaces verified local emergency hotlines (USA, UK, Canada, Pakistan, UAE, International) using IP geolocation.
 - **Automatic Farewell Detection:** Seamlessly identifies closing phrases (*"Allah Hafiz"*, *"Goodbye"*, *"I have to leave"*) and responds with a warm closing supplication or thought.
 
-### 5. Privacy & User Data Sovereignty (GDPR/CCPA)
+### 7. Privacy & User Data Sovereignty (GDPR/CCPA)
 - **Google OAuth 2.0:** Secure identity verification without storing passwords.
 - **Full Data Export:** Download all stored mood history and profile logs in JSON format via `GET /api/user/data/export`.
 - **Right to Erasure (Forget Me):** Instantly purge all user records and database logs via `DELETE /api/user/data`.
@@ -227,8 +237,10 @@ sakina_agent/
 ├── mood_log.json         # Agent memory file for MCP tool operations
 │
 ├── src/                  # React 19 Frontend Application
-│   ├── App.jsx           # Master application shell, tab routing, Chat & Practice UI
-│   ├── moodtab.jsx       # Mood tracking interface, trend charts, and synthesis viewer
+│   ├── App.jsx           # Master application shell, tab routing, Chat UI & in-chat disclaimer
+│   ├── JournalTab.jsx    # Private journal with reflection prompts, unified mood tags & Zen mode
+│   ├── MoodTab.jsx       # Mood tracking interface, trend charts, and synthesis viewer
+│   ├── AudioPlayer.jsx   # Top-header integrated soundscape player (Local audio & Spotify)
 │   ├── SettingsTab.jsx   # User profile controls, theme settings, and GDPR data management
 │   ├── AuthContext.jsx   # React Context for Google Authentication state
 │   ├── GoogleSignIn.jsx  # Google OAuth login component

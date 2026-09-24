@@ -73,15 +73,15 @@ const CURATED_PROMPTS = [
 ];
 
 const MOOD_OPTIONS = [
-  { label: "Calm", icon: "🕊️" },
-  { label: "Grateful", icon: "✨" },
-  { label: "Reflective", icon: "🌊" },
-  { label: "Peaceful", icon: "🍃" },
-  { label: "Hopeful", icon: "🌱" },
-  { label: "Content", icon: "☀️" },
-  { label: "Overwhelmed", icon: "🌪️" },
-  { label: "Anxious", icon: "⚡" },
-  { label: "Heavy", icon: "🌧️" },
+  "Calm",
+  "Grateful",
+  "Reflective",
+  "Peaceful",
+  "Hopeful",
+  "Content",
+  "Overwhelmed",
+  "Anxious",
+  "Heavy",
 ];
 
 const LOCAL_STORAGE_ENTRIES_KEY = "sakina_local_journal_entries";
@@ -798,29 +798,37 @@ export default function JournalTab({ isDark, tokensRef }) {
               <span style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted }}>
                 How is your heart feeling? (Optional)
               </span>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.55rem" }}>
                 {MOOD_OPTIONS.map((mood) => {
-                  const isSelected = selectedMood === mood.label;
+                  const isSelected = selectedMood === mood;
                   return (
                     <button
-                      key={mood.label}
-                      onClick={() => setSelectedMood(isSelected ? "" : mood.label)}
+                      key={mood}
+                      onClick={() => setSelectedMood(isSelected ? "" : mood)}
                       style={{
-                        padding: "5px 12px",
-                        borderRadius: "20px",
+                        background: isSelected ? `${t.glow}18` : t.glass,
                         border: `1px solid ${isSelected ? t.borderGlow : t.border}`,
-                        background: isSelected ? `${t.glow}25` : `${t.glass}30`,
-                        color: isSelected ? t.glow : t.textSecond,
-                        fontSize: "0.76rem",
+                        borderRadius: "20px",
+                        padding: "8px 17px",
                         cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "5px",
-                        transition: "all 0.18s",
+                        color: isSelected ? t.glow : t.textSecond,
+                        fontSize: "0.8rem",
+                        transition: "all 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.borderColor = t.borderGlow;
+                          e.currentTarget.style.color = t.glow;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.borderColor = t.border;
+                          e.currentTarget.style.color = t.textSecond;
+                        }
                       }}
                     >
-                      <span>{mood.icon}</span>
-                      <span>{mood.label}</span>
+                      {mood}
                     </button>
                   );
                 })}
@@ -989,8 +997,8 @@ export default function JournalTab({ isDark, tokensRef }) {
               >
                 <option value="">All Moods</option>
                 {MOOD_OPTIONS.map((m) => (
-                  <option key={m.label} value={m.label}>
-                    {m.icon} {m.label}
+                  <option key={m} value={m}>
+                    {m}
                   </option>
                 ))}
               </select>
@@ -1084,8 +1092,6 @@ export default function JournalTab({ isDark, tokensRef }) {
                       year: "numeric",
                     })
                   : "";
-                const moodObj = MOOD_OPTIONS.find((m) => m.label === entry.mood);
-
                 return (
                   <div
                     key={entry.id}
@@ -1117,13 +1123,9 @@ export default function JournalTab({ isDark, tokensRef }) {
                               background: `${t.glow}20`,
                               border: `1px solid ${t.borderGlow}`,
                               color: t.gold,
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "4px",
                             }}
                           >
-                            <span>{moodObj?.icon || "✨"}</span>
-                            <span>{entry.mood}</span>
+                            {entry.mood}
                           </span>
                         )}
                       </div>
