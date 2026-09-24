@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { tokens } from "./tokens";
 
 // ─────────────────────────────────────────────
@@ -482,7 +483,7 @@ export default function AudioPlayer({ isDark, tokensRef }) {
       {/* ─────────────────────────────────────────────
           EXPANDED SOUNDSCAPE MODAL / PANEL
           ───────────────────────────────────────────── */}
-      {isExpanded && (
+      {isExpanded && typeof document !== "undefined" && createPortal(
         <div
           style={{
             position: "fixed",
@@ -490,10 +491,10 @@ export default function AudioPlayer({ isDark, tokensRef }) {
             left: 0,
             right: 0,
             bottom: 0,
-            zIndex: 1000,
-            background: "rgba(5, 14, 23, 0.7)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
+            zIndex: 99999,
+            background: "rgba(5, 14, 23, 0.75)",
+            backdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1109,7 +1110,8 @@ export default function AudioPlayer({ isDark, tokensRef }) {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

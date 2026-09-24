@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "./AuthContext";
 import { apiFetch } from "./apiKeyHelper";
 import { tokens } from "./tokens";
@@ -1271,7 +1272,7 @@ export default function JournalTab({ isDark, tokensRef }) {
       {/* ─────────────────────────────────────────────
           READER MODAL (Peaceful, Immersive Reading)
           ───────────────────────────────────────────── */}
-      {activeReaderEntry && (
+      {activeReaderEntry && typeof document !== "undefined" && createPortal(
         <div
           style={{
             position: "fixed",
@@ -1279,7 +1280,7 @@ export default function JournalTab({ isDark, tokensRef }) {
             left: 0,
             right: 0,
             bottom: 0,
-            zIndex: 1000,
+            zIndex: 99999,
             background: "rgba(5, 14, 23, 0.75)",
             backdropFilter: "blur(14px)",
             WebkitBackdropFilter: "blur(14px)",
@@ -1437,13 +1438,14 @@ export default function JournalTab({ isDark, tokensRef }) {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ─────────────────────────────────────────────
           DELETE CONFIRMATION MODAL
           ───────────────────────────────────────────── */}
-      {deleteConfirmEntry && (
+      {deleteConfirmEntry && typeof document !== "undefined" && createPortal(
         <div
           style={{
             position: "fixed",
@@ -1451,7 +1453,7 @@ export default function JournalTab({ isDark, tokensRef }) {
             left: 0,
             right: 0,
             bottom: 0,
-            zIndex: 1100,
+            zIndex: 99999,
             background: "rgba(5, 14, 23, 0.8)",
             backdropFilter: "blur(12px)",
             WebkitBackdropFilter: "blur(12px)",
@@ -1514,7 +1516,8 @@ export default function JournalTab({ isDark, tokensRef }) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
