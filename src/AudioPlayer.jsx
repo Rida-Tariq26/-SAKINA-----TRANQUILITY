@@ -82,7 +82,15 @@ export default function AudioPlayer({ isDark, tokensRef }) {
   });
   const [spotifyLoading, setSpotifyLoading] = useState(false);
   const [spotifyError, setSpotifyError] = useState("");
-  const [spotifyType, setSpotifyType] = useState("playlist");
+  const [spotifyType, setSpotifyType] = useState(() => {
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_SPOTIFY_KEY) || "";
+      if (saved.includes("/track/")) return "track";
+      return "playlist";
+    } catch {
+      return "playlist";
+    }
+  });
 
   // Local audio state
   const [audioFile, setAudioFile] = useState(null);
@@ -130,6 +138,17 @@ export default function AudioPlayer({ isDark, tokensRef }) {
       }
     };
   }, [audioSrc]);
+
+  // Close modal on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && isExpanded) {
+        setIsExpanded(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isExpanded]);
 
   // Handle local file selection
   const handleFileChange = (e) => {
@@ -482,8 +501,9 @@ export default function AudioPlayer({ isDark, tokensRef }) {
 
       {/* ─────────────────────────────────────────────
           EXPANDED SOUNDSCAPE MODAL / PANEL
+          Kept mounted in DOM to prevent Spotify iframe from destroying/pausing during navigation or modal close
           ───────────────────────────────────────────── */}
-      {isExpanded && typeof document !== "undefined" && createPortal(
+      {typeof document !== "undefined" && createPortal(
         <div
           style={{
             position: "fixed",
@@ -493,17 +513,21 @@ export default function AudioPlayer({ isDark, tokensRef }) {
             bottom: 0,
             zIndex: 99999,
             background: "rgba(5, 14, 23, 0.75)",
-            backdropFilter: "blur(14px)",
-            WebkitBackdropFilter: "blur(14px)",
+            backdropFilter: isExpanded ? "blur(14px)" : "none",
+            WebkitBackdropFilter: isExpanded ? "blur(14px)" : "none",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             padding: "20px",
-            animation: "fadeIn 0.25s ease-out",
+            opacity: isExpanded ? 1 : 0,
+            visibility: isExpanded ? "visible" : "hidden",
+            pointerEvents: isExpanded ? "auto" : "none",
+            transition: "opacity 0.25s ease, visibility 0.25s ease",
           }}
           onClick={(e) => {
             if (e.target === e.currentTarget) setIsExpanded(false);
           }}
+          aria-hidden={!isExpanded}
         >
           <div
             className="glass-card"
@@ -520,6 +544,8 @@ export default function AudioPlayer({ isDark, tokensRef }) {
               display: "flex",
               flexDirection: "column",
               gap: "1.4rem",
+              transform: isExpanded ? "scale(1)" : "scale(0.97)",
+              transition: "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           >
             {/* Header */}
@@ -648,8 +674,13 @@ export default function AudioPlayer({ isDark, tokensRef }) {
             {/* ─────────────────────────────────────────────
                 TAB 1: LOCAL AUDIO FILE PLAYER
                 ───────────────────────────────────────────── */}
-            {activeTab === "local" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+            <div
+              style={{
+                display: activeTab === "local" ? "flex" : "none",
+                flexDirection: "column",
+                gap: "1.2rem",
+              }}
+            >
                 {/* Upload / Select Button Card */}
                 <div
                   style={{
@@ -934,13 +965,17 @@ export default function AudioPlayer({ isDark, tokensRef }) {
                   </div>
                 )}
               </div>
-            )}
 
             {/* ─────────────────────────────────────────────
                 TAB 2: SPOTIFY EMBED PLAYER
                 ───────────────────────────────────────────── */}
-            {activeTab === "spotify" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+            <div
+              style={{
+                display: activeTab === "spotify" ? "flex" : "none",
+                flexDirection: "column",
+                gap: "1.2rem",
+              }}
+            >
                 {/* Spotify URL Input Section */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   <label style={{ fontSize: "0.74rem", textTransform: "uppercase", letterSpacing: "0.1em", color: t.textMuted }}>
@@ -1108,7 +1143,6 @@ export default function AudioPlayer({ isDark, tokensRef }) {
                   </div>
                 )}
               </div>
-            )}
           </div>
         </div>,
         document.body
