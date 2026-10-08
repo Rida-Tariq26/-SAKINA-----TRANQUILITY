@@ -154,7 +154,7 @@ export default function SettingsTab({ isDark, onNavigate, onLogout }) {
     WebkitBackdropFilter: "blur(18px)",
     border: `1px solid ${t.border}`,
     borderRadius: "14px",
-    padding: "1.4rem 1.6rem",
+    padding: "clamp(1.1rem, 3vw, 1.6rem)",
     marginBottom: "1rem",
   };
 
@@ -201,7 +201,7 @@ export default function SettingsTab({ isDark, onNavigate, onLogout }) {
 
   return (
     <div style={{
-      padding: "2rem 2.2rem 3rem",
+      padding: "clamp(1rem, 3vw, 2rem) clamp(0.9rem, 3vw, 2.2rem) 3rem",
       overflowY: "auto", height: "100%",
       animation: "fadeUp 0.4s ease forwards",
     }}>

@@ -14,10 +14,10 @@ from google.genai import types
 from system_prompt import SYSTEM_PROMPT
 from guardrails import evaluate_guardrails, get_user_country, CrisisTier
 
-# Import MCP Client utilities
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
-from fastapi import FastAPI
+from fastapi import FastAPI, Header
+from typing import Optional
 
 app = FastAPI()
 
@@ -45,7 +45,13 @@ FAREWELL_KEYWORDS = [
 ]
 
 
-async def is_farewell(text: str, runner: Runner, session_service: InMemorySessionService) -> bool:
+async def is_farewell(
+    text: str,
+    runner: Runner,
+    session_service: InMemorySessionService,
+    user_id: str = USER_ID,
+    session_id: str = SESSION_ID,
+) -> bool:
     text_lower = text.lower().strip()
 
     if any(keyword in text_lower for keyword in FAREWELL_KEYWORDS):
@@ -57,10 +63,10 @@ async def is_farewell(text: str, runner: Runner, session_service: InMemorySessio
         "Reply with only one word: YES or NO."
     )
 
-    temp_session_id = SESSION_ID + "_farewell_check"
+    temp_session_id = session_id + "_farewell_check"
     try:
         await session_service.create_session(
-            user_id=USER_ID,
+            user_id=user_id,
             session_id=temp_session_id,
             app_name=APP_NAME
         )
@@ -69,7 +75,7 @@ async def is_farewell(text: str, runner: Runner, session_service: InMemorySessio
 
     try:
         response = runner.run_async(
-            user_id=USER_ID,
+            user_id=user_id,
             session_id=temp_session_id,
             new_message=types.Content(
                 role="user",
@@ -101,10 +107,10 @@ _country_code: str = "DEFAULT"
 # SECTION 3: CORE CHAT FUNCTION
 # ─────────────────────────────────────────────
 
-async def chat(user_message: str) -> str:
+async def chat(user_message: str, user_id: str = USER_ID, session_id: str = SESSION_ID) -> str:
     response = runner.run_async(
-        user_id=USER_ID,
-        session_id=SESSION_ID,
+        user_id=user_id,
+        session_id=session_id,
         new_message=types.Content(
             role="user",
             parts=[types.Part(text=user_message)]
@@ -205,13 +211,19 @@ def read_root():
     return {"message": "Welcome to 'Sakina' — A Guided Space for Psychological & Spiritual Tranquility!"}
 
 @app.post("/api/chat")
-async def api_chat(payload: ChatRequest):
+async def api_chat(
+    payload: ChatRequest,
+    x_user_id: Optional[str] = Header(None, alias="X-User-Id"),
+):
     """
     Exposes your chat workflow via HTTP POST requests
     """
     user_input = payload.message.strip()
     if not user_input:
         return {"response": "I'm here. Take your time."}
+
+    user_id = (x_user_id or USER_ID).strip()
+    session_id = f"chat_{user_id}"
 
     # 1. Guardrail evaluation
     guardrail = await evaluate_guardrails(
@@ -220,8 +232,8 @@ async def api_chat(payload: ChatRequest):
         runner=runner,
         session_service=session_service,
         app_name=APP_NAME,
-        user_id=USER_ID,
-        session_id=SESSION_ID,
+        user_id=user_id,
+        session_id=session_id,
     )
 
     if guardrail.tier == CrisisTier.SEVERE:
@@ -232,7 +244,7 @@ async def api_chat(payload: ChatRequest):
             return {"response": guardrail.response_text}
 
     # 2. Farewell detection
-    if await is_farewell(user_input, runner, session_service):
+    if await is_farewell(user_input, runner, session_service, user_id=user_id, session_id=session_id):
         closing_prompt = (
             "The user is ending the session now. Send them off warmly and "
             "personally, referencing something meaningful from our conversation today. "
@@ -245,11 +257,11 @@ async def api_chat(payload: ChatRequest):
             "If you were in Mode 3, close with an uplifting quote and its author. "
             "Keep the entire closing brief and sincere."
         )
-        closing = await chat(closing_prompt)
+        closing = await chat(closing_prompt, user_id=user_id, session_id=session_id)
         return {"response": closing, "session_ended": True}
 
     # 3. Normal agent response
-    response = await chat(user_input)
+    response = await chat(user_input, user_id=user_id, session_id=session_id)
     return {"response": response, "session_ended": False}
 
 

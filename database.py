@@ -5,7 +5,8 @@ Tables:
   users      — Google-authenticated user profiles (user_id = Google sub)
   mood_logs  — Per-user mood entries (replaces mood_log.json for data management)
 
-The MCP server's mood_log.json is kept for AI agent memory.
+The SQLite database is authoritative for both MCP agent tools and user data management,
+ensuring strict per-user session and data isolation across all operations.
 This DB is authoritative for user data export / deletion (GDPR / CCPA).
 """
 

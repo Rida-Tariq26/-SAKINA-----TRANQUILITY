@@ -63,16 +63,46 @@ APP_NAME = "Sakina"
 DEFAULT_USER_ID = "default_user"
 DEFAULT_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
 
-DHIKR_SESSION = "dhikr_session"
-RESOLVER_SESSION = "resolver_session"
-MOOD_SESSION = "mood_session"
-
 # Global references for shared services and MCP tools
 session_service = InMemorySessionService()
+mcp_session_instance: Optional[ClientSession] = None
+mcp_discovered_tools: List[Any] = []
 mcp_agent_tools: List[Any] = []
 
 # In-memory mood commentary cache: (user_id, normalized_mode, latest_ts, log_count) -> commentary
 mood_commentary_cache: Dict[str, str] = {}
+
+
+def get_scoped_mcp_tools(target_user_id: str) -> List[Any]:
+    """
+    Returns user-scoped MCP tool callables.
+    Enforces that all tool invocations (such as mood_log_tool and mood_history_tool)
+    are bound strictly and immutably to target_user_id, preventing cross-user data leakage.
+    """
+    safe_uid = (target_user_id or DEFAULT_USER_ID).strip()
+    if not mcp_session_instance or not mcp_discovered_tools:
+        return mcp_agent_tools
+
+    scoped_tools = []
+    for tool_def in mcp_discovered_tools:
+        tool_name = tool_def.name
+
+        def make_scoped_call(name=tool_name, uid=safe_uid):
+            async def async_wrapper(**kwargs):
+                args = dict(kwargs)
+                args["user_id"] = uid
+                res = await mcp_session_instance.call_tool(name, arguments=args)
+                return "".join(
+                    content.text for content in res.content if hasattr(content, "text")
+                )
+            return async_wrapper
+
+        tool_func = make_scoped_call(tool_name, safe_uid)
+        tool_func.__name__ = tool_def.name
+        tool_func.__doc__ = tool_def.description or f"MCP tool: {tool_def.name}"
+        scoped_tools.append(tool_func)
+
+    return scoped_tools
 
 
 # ─────────────────────────────────────────────
@@ -107,14 +137,19 @@ def create_llm_instance(model_name: str, api_key: Optional[str] = None):
     return cls(model=target_model)
 
 
-def create_chat_runner(api_key: Optional[str] = None, model_name: Optional[str] = None) -> Runner:
-    """Creates a scoped Chat Runner configured with the target API key & MCP tools."""
+def create_chat_runner(
+    api_key: Optional[str] = None,
+    model_name: Optional[str] = None,
+    user_id: str = DEFAULT_USER_ID,
+) -> Runner:
+    """Creates a scoped Chat Runner configured with the target API key & user-isolated MCP tools."""
     llm = create_llm_instance(model_name or DEFAULT_MODEL, api_key)
+    tools = get_scoped_mcp_tools(user_id)
     agent = Agent(
         name="Sakina",
         model=llm,
         instruction=SYSTEM_PROMPT,
-        tools=mcp_agent_tools,
+        tools=tools,
     )
     return Runner(
         agent=agent,
@@ -124,14 +159,19 @@ def create_chat_runner(api_key: Optional[str] = None, model_name: Optional[str] 
     )
 
 
-def create_mood_runner(api_key: Optional[str] = None, model_name: Optional[str] = None) -> Runner:
-    """Creates a scoped Mood Runner configured with the target API key & MCP tools."""
+def create_mood_runner(
+    api_key: Optional[str] = None,
+    model_name: Optional[str] = None,
+    user_id: str = DEFAULT_USER_ID,
+) -> Runner:
+    """Creates a scoped Mood Runner configured with the target API key & user-isolated MCP tools."""
     llm = create_llm_instance(model_name or DEFAULT_MODEL, api_key)
+    tools = get_scoped_mcp_tools(user_id)
     agent = Agent(
         name="SakinaMood",
         model=llm,
         instruction=TREND_COMMENTARY_PROMPT,
-        tools=mcp_agent_tools,
+        tools=tools,
     )
     return Runner(
         agent=agent,
@@ -157,7 +197,7 @@ async def prune_session_history(user_id: str, session_id: str, max_messages: int
 # ─────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global mcp_agent_tools
+    global mcp_agent_tools, mcp_session_instance, mcp_discovered_tools
 
     # Initialise SQLite database
     init_db()
@@ -182,6 +222,8 @@ async def lifespan(app: FastAPI):
 
         # Fetch available tools over the protocol channel
         mcp_tools_response = await mcp_session.list_tools()
+        mcp_session_instance = mcp_session
+        mcp_discovered_tools = list(mcp_tools_response.tools)
 
         agent_tools = []
         for tool in mcp_tools_response.tools:
@@ -203,10 +245,14 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"MCP server initialization encountered notice (proceeding in standalone mode): {e}")
         mcp_agent_tools = []
+        mcp_session_instance = None
+        mcp_discovered_tools = []
 
     yield
 
     # Clean cleanup on application exit
+    mcp_session_instance = None
+    mcp_discovered_tools = []
     if session_ctx:
         try:
             await session_ctx.__aexit__(None, None, None)
@@ -377,6 +423,11 @@ async def verify_google_token(req: TokenVerifyRequest):
 
 @app.post("/api/auth/logout")
 async def logout_endpoint(x_user_id: Optional[str] = Header(None, alias="X-User-Id")):
+    if x_user_id:
+        user_id = x_user_id.strip()
+        keys_to_remove = [k for k in mood_commentary_cache if k.startswith(f"{user_id}:")]
+        for k in keys_to_remove:
+            mood_commentary_cache.pop(k, None)
     return {"status": "ok"}
 
 
@@ -384,7 +435,7 @@ async def logout_endpoint(x_user_id: Optional[str] = Header(None, alias="X-User-
 async def export_user_data_endpoint(x_user_id: Optional[str] = Header(None, alias="X-User-Id")):
     if not x_user_id:
         raise HTTPException(status_code=400, detail="Missing X-User-Id header")
-    data = export_user_data(x_user_id)
+    data = export_user_data(x_user_id.strip())
     return JSONResponse(content=data)
 
 
@@ -392,7 +443,20 @@ async def export_user_data_endpoint(x_user_id: Optional[str] = Header(None, alia
 async def delete_user_data_endpoint(x_user_id: Optional[str] = Header(None, alias="X-User-Id")):
     if not x_user_id:
         raise HTTPException(status_code=400, detail="Missing X-User-Id header")
-    delete_user_data(x_user_id)
+    user_id = x_user_id.strip()
+    delete_user_data(user_id)
+
+    # 1. Purge user-scoped in-memory sessions from InMemorySessionService
+    if APP_NAME in session_service.sessions and user_id in session_service.sessions[APP_NAME]:
+        session_service.sessions[APP_NAME].pop(user_id, None)
+    if APP_NAME in session_service.user_state and user_id in session_service.user_state[APP_NAME]:
+        session_service.user_state[APP_NAME].pop(user_id, None)
+
+    # 2. Purge user-scoped in-memory commentary cache
+    keys_to_remove = [k for k in mood_commentary_cache if k.startswith(f"{user_id}:")]
+    for k in keys_to_remove:
+        mood_commentary_cache.pop(k, None)
+
     return {"status": "deleted"}
 
 
@@ -415,9 +479,9 @@ async def post_greeting_endpoint(
     if not effective_key:
         return {"response": fallback_greeting}
 
-    user_id = x_user_id or DEFAULT_USER_ID
+    user_id = (x_user_id or DEFAULT_USER_ID).strip()
     session_id = f"chat_{user_id}"
-    runner = create_chat_runner(api_key=effective_key, model_name=x_gemini_model)
+    runner = create_chat_runner(api_key=effective_key, model_name=x_gemini_model, user_id=user_id)
 
     try:
         async def _call_greeting():
@@ -459,9 +523,9 @@ async def post_chat_endpoint(
             detail="Gemini API key is required. Please add your free personal Gemini API key in Settings.",
         )
 
-    user_id = x_user_id or DEFAULT_USER_ID
+    user_id = (x_user_id or DEFAULT_USER_ID).strip()
     session_id = f"chat_{user_id}"
-    runner = create_chat_runner(api_key=effective_key, model_name=x_gemini_model)
+    runner = create_chat_runner(api_key=effective_key, model_name=x_gemini_model, user_id=user_id)
 
     try:
         await prune_session_history(user_id=user_id, session_id=session_id, max_messages=14)
@@ -516,8 +580,12 @@ async def post_dhikr_endpoint(
     x_gemini_model: Optional[str] = Header(None, alias="X-Gemini-Model"),
     x_user_id: Optional[str] = Header(None, alias="X-User-Id"),
 ):
+    user_id = (x_user_id or DEFAULT_USER_ID).strip()
+    dhikr_session = f"dhikr_{user_id}"
+    resolver_session = f"resolver_{user_id}"
+
     effective_key = get_effective_api_key(x_gemini_api_key)
-    runner = create_chat_runner(api_key=effective_key, model_name=x_gemini_model) if effective_key else None
+    runner = create_chat_runner(api_key=effective_key, model_name=x_gemini_model, user_id=user_id) if effective_key else None
 
     is_islamic = req.mode not in ("secular", "clinical_scientific")
 
@@ -528,7 +596,7 @@ async def post_dhikr_endpoint(
     elif runner:
         try:
             emotion = await asyncio.wait_for(
-                resolve_emotion_with_ai(input_for_resolution, runner, RESOLVER_SESSION),
+                resolve_emotion_with_ai(input_for_resolution, runner, resolver_session, user_id=user_id),
                 timeout=15.0,
             )
         except Exception:
@@ -551,7 +619,8 @@ async def post_dhikr_endpoint(
                     entries=raw_practices,
                     mode="islamic" if is_islamic else "clinical_scientific",
                     runner=runner,
-                    session_id=DHIKR_SESSION,
+                    session_id=dhikr_session,
+                    user_id=user_id,
                 ),
                 timeout=20.0,
             )
@@ -593,7 +662,8 @@ async def post_dhikr_endpoint(
                     emotional_state=emotion,
                     mode="islamic" if is_islamic else "clinical_scientific",
                     runner=runner,
-                    session_id=DHIKR_SESSION,
+                    session_id=dhikr_session,
+                    user_id=user_id,
                 ),
                 timeout=20.0,
             )
@@ -621,9 +691,10 @@ async def post_mood_endpoint(
     x_user_id: Optional[str] = Header(None, alias="X-User-Id"),
 ):
     try:
-        user_id = x_user_id.strip() if (x_user_id and x_user_id.strip()) else DEFAULT_USER_ID
+        user_id = (x_user_id or DEFAULT_USER_ID).strip()
+        mood_session = f"mood_{user_id}"
         effective_key = get_effective_api_key(x_gemini_api_key)
-        runner = create_mood_runner(api_key=effective_key, model_name=x_gemini_model)
+        runner = create_mood_runner(api_key=effective_key, model_name=x_gemini_model, user_id=user_id)
 
         normalized_mode = "islamic" if req.mode not in ("secular", "clinical_scientific") else "clinical_scientific"
 
@@ -634,7 +705,7 @@ async def post_mood_endpoint(
                 note=req.note,
                 mode=normalized_mode,
                 runner=runner,
-                session_id=MOOD_SESSION,
+                session_id=mood_session,
                 user_id=user_id,
             ),
             timeout=25.0,
@@ -642,7 +713,7 @@ async def post_mood_endpoint(
 
         # Update cache for instant subsequent dashboard retrieval
         recent = data.get("recent_entries", [])
-        latest_ts = recent[0]["timestamp"] if recent else "new"
+        latest_ts = recent[-1]["timestamp"] if recent else "new"
         all_logs = get_all_mood_logs(user_id=user_id)
         cache_key = f"{user_id}:{normalized_mode}:{latest_ts}:{len(all_logs)}"
         if data.get("commentary"):
@@ -662,7 +733,8 @@ async def get_mood_endpoint(
     x_user_id: Optional[str] = Header(None, alias="X-User-Id"),
 ):
     try:
-        user_id = x_user_id.strip() if (x_user_id and x_user_id.strip()) else DEFAULT_USER_ID
+        user_id = (x_user_id or DEFAULT_USER_ID).strip()
+        mood_session = f"mood_{user_id}"
         normalized_mode = "islamic" if mode not in ("secular", "clinical_scientific") else "clinical_scientific"
 
         # Check cached commentary
@@ -681,13 +753,13 @@ async def get_mood_endpoint(
             }
 
         effective_key = get_effective_api_key(x_gemini_api_key)
-        runner = create_mood_runner(api_key=effective_key, model_name=x_gemini_model)
+        runner = create_mood_runner(api_key=effective_key, model_name=x_gemini_model, user_id=user_id)
 
         data = await asyncio.wait_for(
             get_dashboard(
                 mode=normalized_mode,
                 runner=runner,
-                session_id=MOOD_SESSION,
+                session_id=mood_session,
                 user_id=user_id,
             ),
             timeout=25.0,

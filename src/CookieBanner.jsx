@@ -56,10 +56,12 @@ function CustomizeModal({ isDark, prefs, onSave, onClose }) {
     }} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{
         width: "100%", maxWidth: "460px",
+        maxHeight: "90dvh",
+        overflowY: "auto",
         background: isDark ? "#0D1B2A" : "#F0E6D4",
         border: `1px solid ${t.border}`,
         borderRadius: "16px",
-        padding: "2rem",
+        padding: "clamp(1.1rem, 3.5vw, 2rem)",
         boxShadow: t.shadow,
       }}>
         <h2 style={{
@@ -166,16 +168,16 @@ export default function CookieBanner({ isDark }) {
       {showBanner && (
         <div role="dialog" aria-label="Cookie consent" style={{
           position: "fixed",
-          bottom: "1.5rem", left: "50%",
+          bottom: "clamp(0.75rem, 2vw, 1.5rem)", left: "50%",
           transform: "translateX(-50%)",
-          width: "min(680px, calc(100vw - 2rem))",
+          width: "min(680px, calc(100vw - 1.5rem))",
           zIndex: 900,
           background: isDark ? "rgba(13,27,42,0.97)" : "rgba(255,253,248,0.97)",
           backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
           border: `1px solid ${t.border}`,
           borderRadius: "16px",
-          padding: "1.4rem 1.6rem",
+          padding: "clamp(1rem, 3vw, 1.4rem) clamp(1rem, 3vw, 1.6rem)",
           boxShadow: t.shadow,
           display: "flex",
           flexDirection: "column",
@@ -241,6 +243,7 @@ export default function CookieBanner({ isDark }) {
       {/* ── Cookie Preferences FAB ─────────── */}
       {showFab && !showBanner && (
         <button
+          className="desktop-only"
           title="Cookie Preferences"
           onClick={() => setCustom(true)}
           style={{

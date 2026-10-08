@@ -6,7 +6,7 @@ MOOD_LOG_FILE = "mood_log.json"
 
 from database import add_mood_log, get_recent_mood_logs
 
-def mood_log_tool(emotional_state: str, intensity: int) -> str:
+def mood_log_tool(emotional_state: str, intensity: int, user_id: str = "default_user") -> str:
     """
     Logs the user's current emotional state and intensity to persistent storage.
     Call this whenever the user expresses or describes how they are feeling.
@@ -17,24 +17,30 @@ def mood_log_tool(emotional_state: str, intensity: int) -> str:
                         'grief', 'panic', 'loneliness', 'calm', 'overwhelmed'
         intensity: A number from 1 to 10 representing how strongly 
                   the user seems to feel this emotion
+        user_id: Identifier for the authenticated user
 
     Returns:
         A confirmation string
     """
-    add_mood_log(user_id="default_user", state=emotional_state, intensity=intensity, note="")
+    user_id = (user_id or "default_user").strip()
+    add_mood_log(user_id=user_id, state=emotional_state, intensity=intensity, note="")
     return f"Noted. I've logged: {emotional_state} (intensity {intensity}/10)."
 
 
-def mood_history_tool() -> str:
+def mood_history_tool(user_id: str = "default_user") -> str:
     """
     Retrieves the user's recent emotional history from persistent storage.
     Call this when the user asks how they've been feeling, asks about patterns,
     or wants to reflect on their emotional journey over time.
 
+    Args:
+        user_id: Identifier for the authenticated user
+
     Returns:
         A formatted summary of recent mood entries
     """
-    recent = get_recent_mood_logs(user_id="default_user", limit=7)
+    user_id = (user_id or "default_user").strip()
+    recent = get_recent_mood_logs(user_id=user_id, limit=7)
     if not recent:
         return "No entries logged yet."
 

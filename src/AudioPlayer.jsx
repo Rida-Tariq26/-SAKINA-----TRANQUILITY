@@ -354,8 +354,8 @@ export default function AudioPlayer({ isDark, tokensRef }) {
           position: "relative",
           display: "flex",
           alignItems: "center",
-          gap: "10px",
-          padding: "5px 14px",
+          gap: "8px",
+          padding: "4px 10px",
           background: t.glassCard,
           backdropFilter: "blur(20px) saturate(1.5)",
           WebkitBackdropFilter: "blur(20px) saturate(1.5)",
@@ -372,30 +372,31 @@ export default function AudioPlayer({ isDark, tokensRef }) {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "9px",
+            gap: "8px",
             cursor: "pointer",
           }}
-          title="Click to open Soundscape Controls"
+          title="Click to open Soundscape Sanctuary"
         >
           <div
             style={{
-              width: "32px",
-              height: "32px",
+              width: "30px",
+              height: "30px",
               borderRadius: "50%",
               background: `linear-gradient(135deg, ${t.glow}, ${t.goldSoft})`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: "13px",
+              fontSize: "12px",
               color: isDark ? "#07111C" : "#FFFFFF",
               boxShadow: isPlaying ? `0 0 12px ${t.glow}` : "none",
               animation: isPlaying ? "pulse 2s infinite" : "none",
+              flexShrink: 0,
             }}
           >
             {activeSource === "spotify" ? "♫" : isPlaying ? "▶" : "♪"}
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", maxWidth: "160px" }}>
+          <div className="desktop-audio-details" style={{ display: "flex", flexDirection: "column", maxWidth: "150px" }}>
             <span
               style={{
                 fontSize: "0.78rem",
@@ -411,37 +412,38 @@ export default function AudioPlayer({ isDark, tokensRef }) {
                 ? fileName || "Local Audio"
                 : spotifyEmbedUrl
                 ? "Spotify Soundscape"
-                : "Soundscape & Music"}
+                : "Soundscape"}
             </span>
             <span
               style={{
-                fontSize: "0.66rem",
+                fontSize: "0.65rem",
                 color: activeSource ? t.gold : t.textMuted,
                 display: "flex",
                 alignItems: "center",
                 gap: "5px",
+                whiteSpace: "nowrap",
               }}
             >
               {activeSource === "local" ? (
                 <>
-                  <span style={{ display: "inline-block", width: "6px", height: "6px", borderRadius: "50%", background: "#4ade80" }} />
-                  {isPlaying ? "Playing Local" : "Local Audio Paused"}
+                  <span style={{ display: "inline-block", width: "5px", height: "5px", borderRadius: "50%", background: "#4ade80" }} />
+                  {isPlaying ? "Playing Local" : "Local Paused"}
                 </>
               ) : activeSource === "spotify" ? (
                 <>
-                  <span style={{ display: "inline-block", width: "6px", height: "6px", borderRadius: "50%", background: "#1DB954" }} />
+                  <span style={{ display: "inline-block", width: "5px", height: "5px", borderRadius: "50%", background: "#1DB954" }} />
                   Spotify Active
                 </>
               ) : (
-                "Ambient audio offline"
+                "Ambient Audio"
               )}
             </span>
           </div>
         </div>
 
-        {/* Quick controls if local audio loaded */}
+        {/* Quick controls if local audio loaded (desktop only) */}
         {audioSrc && (
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", borderLeft: `1px solid ${t.border}`, paddingLeft: "10px" }}>
+          <div className="desktop-audio-quick" style={{ display: "flex", alignItems: "center", gap: "6px", borderLeft: `1px solid ${t.border}`, paddingLeft: "8px" }}>
             <button
               onClick={togglePlay}
               style={{
@@ -449,22 +451,20 @@ export default function AudioPlayer({ isDark, tokensRef }) {
                 border: "none",
                 cursor: "pointer",
                 color: t.glow,
-                fontSize: "14px",
+                fontSize: "13px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                width: "28px",
-                height: "28px",
+                width: "26px",
+                height: "26px",
                 borderRadius: "50%",
                 transition: "background 0.2s",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = `${t.glow}20`)}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               title={isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? "❚❚" : "▶"}
             </button>
-            <span style={{ fontSize: "0.7rem", color: t.textMuted, minWidth: "35px" }}>
+            <span style={{ fontSize: "0.68rem", color: t.textMuted, minWidth: "32px" }}>
               {formatTime(currentTime)}
             </span>
           </div>
@@ -477,14 +477,15 @@ export default function AudioPlayer({ isDark, tokensRef }) {
             background: `${t.glow}18`,
             border: `1px solid ${t.border}`,
             borderRadius: "20px",
-            padding: "4px 10px",
+            padding: "4px 9px",
             color: t.glow,
             fontSize: "0.72rem",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
-            gap: "5px",
+            gap: "4px",
             transition: "all 0.2s",
+            whiteSpace: "nowrap",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = `${t.glow}30`;
@@ -495,7 +496,8 @@ export default function AudioPlayer({ isDark, tokensRef }) {
             e.currentTarget.style.borderColor = t.border;
           }}
         >
-          <span>✦ Soundscape</span>
+          <span className="mobile-audio-label">✦ Audio</span>
+          <span className="desktop-audio-label">✦ Soundscape</span>
         </button>
       </div>
 
@@ -518,7 +520,7 @@ export default function AudioPlayer({ isDark, tokensRef }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: "20px",
+            padding: "min(16px, 3vw)",
             opacity: isExpanded ? 1 : 0,
             visibility: isExpanded ? "visible" : "hidden",
             pointerEvents: isExpanded ? "auto" : "none",
@@ -534,16 +536,17 @@ export default function AudioPlayer({ isDark, tokensRef }) {
             style={{
               width: "100%",
               maxWidth: "680px",
+              maxHeight: "90dvh",
               maxHeight: "90vh",
               overflowY: "auto",
-              borderRadius: "24px",
-              padding: "2rem",
+              borderRadius: "20px",
+              padding: "clamp(1.1rem, 3.5vw, 2rem)",
               position: "relative",
               border: `1px solid ${t.borderGlow}`,
               boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
               display: "flex",
               flexDirection: "column",
-              gap: "1.4rem",
+              gap: "1.2rem",
               transform: isExpanded ? "scale(1)" : "scale(0.97)",
               transition: "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
             }}
@@ -1045,7 +1048,7 @@ export default function AudioPlayer({ isDark, tokensRef }) {
                   <span style={{ fontSize: "0.72rem", color: t.textMuted, letterSpacing: "0.06em" }}>
                     Or try a peaceful curated preset:
                   </span>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))", gap: "8px" }}>
                     {SPOTIFY_PRESETS.map((preset, idx) => (
                       <div
                         key={idx}

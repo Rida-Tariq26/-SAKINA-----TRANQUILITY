@@ -125,6 +125,13 @@ export async function apiFetch(url, options = {}, timeoutMs = 25000) {
       if (parsed?.sub) {
         headers.set("X-User-Id", parsed.sub);
       }
+    } else {
+      let guestId = localStorage.getItem("sakina_guest_id");
+      if (!guestId) {
+        guestId = "guest_" + (typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15));
+        localStorage.setItem("sakina_guest_id", guestId);
+      }
+      headers.set("X-User-Id", guestId);
     }
   } catch {
     // Ignore JSON parse errors

@@ -92,16 +92,21 @@ const GlobalStyles = ({ isDark }) => {
     <style>{`
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-      html, body { height: 100%; overflow-x: hidden; }
+      html, body {
+        height: 100%;
+        width: 100%;
+        overflow-x: hidden;
+      }
 
       body {
         font-family: 'Inter', sans-serif;
         background: ${t.bgBase};
         color: ${t.textPrimary};
         transition: background 0.7s ease, color 0.4s ease;
+        -webkit-tap-highlight-color: transparent;
       }
 
-      ::-webkit-scrollbar { width: 3px; }
+      ::-webkit-scrollbar { width: 3px; height: 3px; }
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: ${t.border}; border-radius: 2px; }
 
@@ -125,10 +130,51 @@ const GlobalStyles = ({ isDark }) => {
         transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
       }
 
-      .glass-card:hover {
-        border-color: ${t.borderGlow};
-        box-shadow: ${t.shadowGlow}, inset 0 1px 0 ${t.innerLight};
-        transform: translateY(-2px);
+      @media (hover: hover) and (pointer: fine) {
+        .glass-card:hover {
+          border-color: ${t.borderGlow};
+          box-shadow: ${t.shadowGlow}, inset 0 1px 0 ${t.innerLight};
+          transform: translateY(-2px);
+        }
+      }
+
+      /* Desktop / Mobile navigation layout rules */
+      .desktop-sidebar {
+        display: flex !important;
+      }
+      .mobile-only {
+        display: none !important;
+      }
+      .mobile-drawer-backdrop {
+        display: none !important;
+      }
+
+      .chat-bubble-msg {
+        max-width: 75%;
+      }
+
+      @media (max-width: 768px) {
+        .desktop-sidebar {
+          display: none !important;
+        }
+        .mobile-only {
+          display: flex !important;
+        }
+        .mobile-drawer-backdrop {
+          display: flex !important;
+        }
+        .chat-bubble-msg {
+          max-width: 88% !important;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .desktop-audio-details {
+          display: none !important;
+        }
+        .desktop-audio-quick {
+          display: none !important;
+        }
       }
 
       @keyframes breathe {
@@ -349,13 +395,14 @@ const LandingPage = ({ isDark, onEnter, onToggleTheme, onNavigate }) => {
   return (
     <div style={{
       minHeight: "100vh",
+      height: "100dvh",
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
       position: "relative",
       overflow: "hidden",
-      padding: "2rem",
+      padding: "clamp(1.2rem, 4vw, 2rem)",
     }}>
       <MeshBackground isDark={isDark} />
       <TrackedOrb isDark={isDark} />
@@ -404,12 +451,12 @@ const LandingPage = ({ isDark, onEnter, onToggleTheme, onNavigate }) => {
       {/* Top right actions */}
       <div style={{
         position: "absolute",
-        top: "1.5rem",
-        right: "1.5rem",
+        top: "clamp(1rem, 2.5vw, 1.5rem)",
+        right: "clamp(1rem, 2.5vw, 1.5rem)",
         zIndex: 10,
         display: "flex",
         alignItems: "center",
-        gap: "10px",
+        gap: "8px",
       }}>
         {user ? (
           <button
@@ -541,7 +588,7 @@ const LandingPage = ({ isDark, onEnter, onToggleTheme, onNavigate }) => {
             animation: btnHover ? "gradientShift 2s ease infinite" : "none",
             border: `1px solid ${btnHover ? t.borderGlow : t.border}`,
             borderRadius: "2px",
-            padding: "16px 52px",
+            padding: "15px clamp(28px, 6vw, 52px)",
             cursor: "pointer",
             color: btnHover ? (isDark ? tokens.dark.bgBase : "#fff") : t.glow,
             fontSize: "0.78rem",
@@ -554,6 +601,7 @@ const LandingPage = ({ isDark, onEnter, onToggleTheme, onNavigate }) => {
             backdropFilter: "blur(10px)",
             WebkitBackdropFilter: "blur(10px)",
             overflow: "hidden",
+            maxWidth: "min(360px, 90vw)",
           }}
         >
           {/* Shimmer layer */}
@@ -572,9 +620,11 @@ const LandingPage = ({ isDark, onEnter, onToggleTheme, onNavigate }) => {
         {/* Bottom feature hints */}
         <div className="fade-up-4" style={{
           display: "flex",
-          gap: "2rem",
+          gap: "1rem",
+          flexWrap: "wrap",
+          justifyContent: "center",
           marginTop: "3.5rem",
-          opacity: 0.5,
+          opacity: 0.6,
         }}>
           {["Guided Conversation", "Dhikr & Practice", "Clinical & Scientific"].map((label, i) => (
             <div key={i} style={{
@@ -760,10 +810,10 @@ const ChatTab = ({ isDark, onNavigate }) => {
       <div style={{
         flex: 1,
         overflowY: "auto",
-        padding: "2rem 1.8rem 1rem",
+        padding: "clamp(0.85rem, 2.5vw, 1.8rem) clamp(0.75rem, 2.5vw, 1.8rem) 0.5rem",
         display: "flex",
         flexDirection: "column",
-        gap: "1.2rem",
+        gap: "1rem",
         position: "relative",
         zIndex: 1,
       }}>
@@ -777,7 +827,7 @@ const ChatTab = ({ isDark, onNavigate }) => {
               boxShadow: `0 0 12px rgba(196,132,90,0.3)`,
             }}>✦</div>
             <div style={{
-              padding: "13px 17px",
+              padding: "11px 15px",
               borderRadius: "18px 18px 18px 4px",
               background: t.aiBubble,
               border: `1px solid ${t.border}`,
@@ -814,21 +864,25 @@ const ChatTab = ({ isDark, onNavigate }) => {
                 ✦
               </div>
             )}
-            <div style={{
-              maxWidth: "75%",
-              padding: "13px 17px",
-              borderRadius: msg.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-              background: msg.role === "user" ? t.userBubble : t.aiBubble,
-              backdropFilter: "blur(16px)",
-              WebkitBackdropFilter: "blur(16px)",
-              border: `1px solid ${t.border}`,
-              boxShadow: t.shadow + ", inset 0 1px 0 " + t.innerLight,
-              fontSize: "0.88rem",
-              lineHeight: 1.75,
-              color: t.textPrimary,
-              whiteSpace: "pre-wrap",
-              fontWeight: 300,
-            }}>
+            <div
+              className="chat-bubble-msg"
+              style={{
+                padding: "clamp(10px, 2vw, 13px) clamp(13px, 2.5vw, 17px)",
+                borderRadius: msg.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                background: msg.role === "user" ? t.userBubble : t.aiBubble,
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+                border: `1px solid ${t.border}`,
+                boxShadow: t.shadow + ", inset 0 1px 0 " + t.innerLight,
+                fontSize: "0.88rem",
+                lineHeight: 1.7,
+                color: t.textPrimary,
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+                overflowWrap: "anywhere",
+                fontWeight: 300,
+              }}
+            >
               <div>{msg.text}</div>
               {msg.isKeyNotice && onNavigate && (
                 <button
@@ -866,7 +920,7 @@ const ChatTab = ({ isDark, onNavigate }) => {
               boxShadow: `0 0 12px rgba(196,132,90,0.3)`,
             }}>✦</div>
             <div style={{
-              padding: "13px 17px",
+              padding: "11px 15px",
               borderRadius: "18px 18px 18px 4px",
               background: t.aiBubble,
               backdropFilter: "blur(16px)",
@@ -883,11 +937,11 @@ const ChatTab = ({ isDark, onNavigate }) => {
 
       {/* Disclaimer */}
       <div style={{
-        padding: "7px 1.8rem",
+        padding: "6px clamp(0.75rem, 2vw, 1.8rem)",
         textAlign: "center",
-        fontSize: "0.72rem",
+        fontSize: "0.7rem",
         color: t.textMuted,
-        lineHeight: 1.4,
+        lineHeight: 1.35,
         fontWeight: 300,
         background: t.glass,
         borderTop: `1px solid ${t.border}`,
@@ -900,10 +954,10 @@ const ChatTab = ({ isDark, onNavigate }) => {
 
       {/* Input area */}
       <div style={{
-        padding: "1rem 1.8rem 1.6rem",
+        padding: "clamp(0.6rem, 2vw, 1rem) clamp(0.75rem, 2.5vw, 1.8rem) calc(clamp(0.6rem, 2vw, 1.4rem) + env(safe-area-inset-bottom, 0px))",
         borderTop: `1px solid ${t.border}`,
         display: "flex",
-        gap: "10px",
+        gap: "8px",
         alignItems: "flex-end",
         background: t.glass,
         backdropFilter: "blur(20px)",
@@ -926,7 +980,12 @@ const ChatTab = ({ isDark, onNavigate }) => {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKey}
-            onFocus={() => setInputFocused(true)}
+            onFocus={() => {
+              setInputFocused(true);
+              setTimeout(() => {
+                bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+              }, 180);
+            }}
             onBlur={() => setInputFocused(false)}
             placeholder="Share what's on your heart…"
             rows={1}
@@ -936,13 +995,13 @@ const ChatTab = ({ isDark, onNavigate }) => {
               backdropFilter: "blur(16px)",
               border: "none",
               borderRadius: "14px",
-              padding: "13px 17px",
+              padding: "clamp(10px, 2vw, 13px) clamp(12px, 2vw, 17px)",
               color: t.textPrimary,
-              fontSize: "0.88rem",
+              fontSize: "16px",
               fontFamily: "'Inter', sans-serif",
               resize: "none",
               outline: "none",
-              lineHeight: 1.65,
+              lineHeight: 1.55,
               fontWeight: 300,
               maxHeight: "130px",
               overflowY: "auto",
@@ -960,6 +1019,8 @@ const ChatTab = ({ isDark, onNavigate }) => {
             borderRadius: "12px",
             width: "44px",
             height: "44px",
+            minWidth: "44px",
+            minHeight: "44px",
             cursor: input.trim() && !loading ? "pointer" : "default",
             display: "flex",
             alignItems: "center",
@@ -1030,7 +1091,7 @@ const DhikrTab = ({ isDark }) => {
   const reset = () => { setStep("mode"); setEmotion(""); setFreeText(""); setResult(null); };
 
   if (step === "mode") return (
-    <div style={{ padding: "2.5rem 2rem", animation: "fadeUp 0.5s ease forwards" }}>
+    <div style={{ padding: "clamp(1.2rem, 3.5vw, 2.5rem) clamp(0.9rem, 3vw, 2rem)", animation: "fadeUp 0.5s ease forwards" }}>
       <span style={labelStyle}>How would you like guidance today?</span>
       <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
         {[
@@ -1040,9 +1101,10 @@ const DhikrTab = ({ isDark }) => {
           <button key={opt.key} onClick={() => handleModeSelect(opt.key)}
             className="glass-card"
             style={{
-              flex: "1 1 180px",
+              flex: "1 1 200px",
+              minWidth: 0,
               borderRadius: "12px",
-              padding: "1.6rem 1.4rem",
+              padding: "clamp(1.2rem, 3vw, 1.6rem) clamp(1rem, 2.5vw, 1.4rem)",
               cursor: "pointer",
               textAlign: "left",
               color: t.textPrimary,
@@ -1060,7 +1122,7 @@ const DhikrTab = ({ isDark }) => {
   );
 
   if (step === "emotion") return (
-    <div style={{ padding: "2.5rem 2rem", animation: "fadeUp 0.5s ease forwards" }}>
+    <div style={{ padding: "clamp(1.2rem, 3.5vw, 2.5rem) clamp(0.9rem, 3vw, 2rem)", animation: "fadeUp 0.5s ease forwards" }}>
       <span style={labelStyle}>What are you feeling right now?</span>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem", marginBottom: "1.8rem" }}>
         {EMOTIONS.map(em => (
@@ -1071,6 +1133,7 @@ const DhikrTab = ({ isDark }) => {
             border: `1px solid ${t.border}`,
             borderRadius: "22px",
             padding: "9px 20px",
+            minHeight: "40px",
             cursor: "pointer",
             color: t.textSecond,
             fontSize: "0.82rem",
@@ -1085,21 +1148,22 @@ const DhikrTab = ({ isDark }) => {
       </div>
       <div style={{ borderTop: `1px solid ${t.border}`, paddingTop: "1.4rem" }}>
         <span style={{ ...labelStyle, marginBottom: "0.7rem" }}>Or describe it in your own words</span>
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
           <input
             value={freeText}
             onChange={e => setFreeText(e.target.value)}
             onKeyDown={e => e.key === "Enter" && freeText.trim() && handleEmotionSelect(freeText)}
             placeholder="e.g. I feel like everything is too much…"
             style={{
-              flex: 1,
+              flex: "1 1 200px",
+              minWidth: 0,
               background: t.glassCard,
               backdropFilter: "blur(16px)",
               border: `1px solid ${t.border}`,
               borderRadius: "10px",
               padding: "11px 16px",
               color: t.textPrimary,
-              fontSize: "0.85rem",
+              fontSize: "16px",
               fontFamily: "'Inter', sans-serif",
               outline: "none",
               fontWeight: 300,
@@ -1112,12 +1176,13 @@ const DhikrTab = ({ isDark }) => {
             background: `linear-gradient(135deg, ${t.glow}, ${t.goldSoft})`,
             border: "none",
             borderRadius: "10px",
-            padding: "11px 20px",
+            padding: "11px 22px",
             cursor: "pointer",
             color: isDark ? tokens.dark.bgBase : "#fff",
-            fontSize: "0.82rem",
+            fontSize: "0.85rem",
             boxShadow: `0 4px 16px rgba(196,132,90,0.3)`,
             transition: "transform 0.2s ease",
+            flexShrink: 0,
           }}
             onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
             onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
@@ -1128,7 +1193,7 @@ const DhikrTab = ({ isDark }) => {
   );
 
   return (
-    <div style={{ padding: "2rem 2rem 2.5rem", overflowY: "auto", height: "100%", animation: "fadeUp 0.5s ease forwards" }}>
+    <div style={{ padding: "clamp(1.2rem, 3.5vw, 2rem) clamp(0.9rem, 3vw, 2rem) 2.5rem", overflowY: "auto", height: "100%", animation: "fadeUp 0.5s ease forwards" }}>
       {loading ? (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "200px", gap: "1.2rem" }}>
           <SakinaLogo size={44} color={isDark ? tokens.dark.gold : tokens.light.gold} style={{ opacity: 0.6, animation: "breathe 2s ease-in-out infinite" }} />
@@ -1140,15 +1205,15 @@ const DhikrTab = ({ isDark }) => {
         <>
           <div style={{ marginBottom: "2rem" }}>
             <span style={labelStyle}>{emotion.charAt(0).toUpperCase() + emotion.slice(1)}</span>
-            <p style={{ fontSize: "0.9rem", lineHeight: 1.85, color: t.textSecond, fontWeight: 300 }}>{result.commentary}</p>
+            <p style={{ fontSize: "0.9rem", lineHeight: 1.85, color: t.textSecond, fontWeight: 300, wordBreak: "break-word" }}>{result.commentary}</p>
           </div>
           {result.practices?.map((p, i) => (
-            <div key={i} className="glass-card" style={{ borderRadius: "12px", padding: "1.6rem", marginBottom: "1rem" }}>
+            <div key={i} className="glass-card" style={{ borderRadius: "12px", padding: "clamp(1.1rem, 3vw, 1.6rem)", marginBottom: "1rem" }}>
               {mode === "islamic" ? (
                 <>
-                  <div className="arabic" style={{ fontSize: "1.5rem", color: t.gold, marginBottom: "0.7rem", lineHeight: 2 }}>{p.arabic}</div>
-                  <div style={{ fontSize: "0.85rem", color: t.goldSoft, marginBottom: "0.5rem", fontStyle: "italic" }}>{p.transliteration}</div>
-                  <div style={{ fontSize: "0.88rem", color: t.textPrimary, marginBottom: "1rem", fontWeight: 300 }}>"{p.translation}"</div>
+                  <div className="arabic" style={{ fontSize: "clamp(1.35rem, 4.5vw, 1.65rem)", color: t.gold, marginBottom: "0.7rem", lineHeight: 2.2, wordBreak: "break-word", overflowWrap: "break-word" }}>{p.arabic}</div>
+                  <div style={{ fontSize: "0.85rem", color: t.goldSoft, marginBottom: "0.5rem", fontStyle: "italic", wordBreak: "break-word" }}>{p.transliteration}</div>
+                  <div style={{ fontSize: "0.88rem", color: t.textPrimary, marginBottom: "1rem", fontWeight: 300, lineHeight: 1.7, wordBreak: "break-word" }}>"{p.translation}"</div>
                   <div style={{ fontSize: "0.75rem", color: t.textMuted, marginBottom: "0.3rem" }}>📖 {p.reference}</div>
                   <div style={{ fontSize: "0.75rem", color: t.textMuted, marginBottom: p.personalization ? "0" : undefined }}>🔁 {p.repetitions}</div>
                 </>
@@ -1204,6 +1269,7 @@ const DhikrTab = ({ isDark }) => {
 const AppPage = ({ isDark, onToggleTheme, onNavigate, onLogout }) => {
   const t = isDark ? tokens.dark : tokens.light;
   const [tab, setTab] = useState("chat");
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const navItems = [
     { key: "chat", label: "Chat", icon: "◎" },
     { key: "dhikr", label: "Dhikr", icon: "✦" },
@@ -1212,13 +1278,133 @@ const AppPage = ({ isDark, onToggleTheme, onNavigate, onLogout }) => {
     { key: "settings", label: "Settings", icon: "⚙" },
   ];
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && isDrawerOpen) {
+        setIsDrawerOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isDrawerOpen]);
+
   return (
-    <div style={{ height: "100vh", display: "flex", position: "relative", overflow: "hidden" }}>
+    <div style={{ height: "100dvh", minHeight: "100vh", width: "100%", display: "flex", position: "relative", overflow: "hidden" }}>
       <MeshBackground isDark={isDark} />
       <TrackedOrb isDark={isDark} />
 
-      {/* Sidebar */}
-      <div className="glass-panel" style={{
+      {/* Mobile Navigation Drawer */}
+      {isDrawerOpen && (
+        <div
+          className="mobile-drawer-backdrop"
+          onClick={() => setIsDrawerOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "rgba(0, 0, 0, 0.65)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+            animation: "fadeInOverlay 0.2s ease forwards",
+            display: "flex",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="glass-panel"
+            style={{
+              width: "min(300px, 84vw)",
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              padding: "clamp(1.2rem, 4vw, 2rem) clamp(1rem, 3.5vw, 1.4rem)",
+              gap: "0.5rem",
+              background: isDark ? "rgba(7, 17, 28, 0.95)" : "rgba(244, 237, 224, 0.96)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
+              borderRight: `1px solid ${t.borderGlow}`,
+              borderTop: "none",
+              borderBottom: "none",
+              borderLeft: "none",
+              borderRadius: 0,
+              boxShadow: "4px 0 24px rgba(0,0,0,0.4)",
+              animation: "drawerSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+              position: "relative",
+            }}
+          >
+            {/* Logo & Close in Drawer */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+              <div
+                onClick={() => { onNavigate("landing"); setIsDrawerOpen(false); }}
+                style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}
+              >
+                <SakinaLogo size={42} color={t.gold} />
+                <div className="display" style={{
+                  fontSize: "1.3rem",
+                  fontWeight: 400,
+                  color: t.textPrimary,
+                  letterSpacing: "0.12em",
+                }}>Sakina</div>
+              </div>
+              <button
+                onClick={() => setIsDrawerOpen(false)}
+                aria-label="Close navigation"
+                style={{
+                  background: "transparent",
+                  border: `1px solid ${t.border}`,
+                  borderRadius: "8px",
+                  color: t.textMuted,
+                  width: "36px",
+                  height: "36px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "1.1rem",
+                  cursor: "pointer",
+                }}
+              >✕</button>
+            </div>
+
+            {navItems.map(item => (
+              <button
+                key={item.key}
+                onClick={() => { setTab(item.key); setIsDrawerOpen(false); }}
+                style={{
+                  background: tab === item.key ? `${t.glow}16` : "transparent",
+                  backdropFilter: tab === item.key ? "blur(10px)" : "none",
+                  border: `1px solid ${tab === item.key ? t.borderGlow : "transparent"}`,
+                  borderRadius: "10px",
+                  padding: "12px 14px",
+                  cursor: "pointer",
+                  color: tab === item.key ? t.glow : t.textMuted,
+                  fontSize: "0.92rem",
+                  fontFamily: "'Inter', sans-serif",
+                  textAlign: "left",
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  letterSpacing: "0.04em",
+                  boxShadow: tab === item.key ? `0 0 14px rgba(196,132,90,0.08)` : "none",
+                  minHeight: "44px",
+                }}
+              >
+                <span style={{ fontSize: "0.85rem" }}>{item.icon}</span>
+                {item.label}
+              </button>
+            ))}
+
+            <div style={{ flex: 1 }} />
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "1rem", borderTop: `1px solid ${t.border}` }}>
+              <span style={{ fontSize: "0.8rem", color: t.textMuted }}>Appearance</span>
+              <ThemeToggle isDark={isDark} onToggle={onToggleTheme} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Sidebar */}
+      <div className="glass-panel desktop-sidebar" style={{
         width: "210px",
         flexShrink: 0,
         display: "flex",
@@ -1286,23 +1472,59 @@ const AppPage = ({ isDark, onToggleTheme, onNavigate, onLogout }) => {
         overflow: "hidden",
         position: "relative",
         zIndex: 5,
+        minWidth: 0,
       }}>
         {/* Tab header */}
         <div style={{
-          padding: "0.8rem 1.8rem",
+          padding: "clamp(0.6rem, 2vw, 0.8rem) clamp(0.8rem, 3vw, 1.8rem)",
           borderBottom: `1px solid ${t.border}`,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: "0.7rem",
+          gap: "0.6rem",
           background: t.glass,
           backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
           boxShadow: `inset 0 -1px 0 ${t.border}`,
+          minHeight: "56px",
+          width: "100%",
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.7rem" }}>
-            <span style={{ fontSize: "0.65rem", color: t.glow }}>{navItems.find(n => n.key === tab)?.icon}</span>
-            <span style={{ fontSize: "0.72rem", letterSpacing: "0.12em", textTransform: "uppercase", color: t.textMuted }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", minWidth: 0 }}>
+            {/* Mobile Hamburger Button */}
+            <button
+              className="mobile-only"
+              onClick={() => setIsDrawerOpen(true)}
+              aria-label="Open navigation menu"
+              style={{
+                background: "transparent",
+                border: `1px solid ${t.border}`,
+                borderRadius: "8px",
+                color: t.glow,
+                padding: "6px 10px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "1.1rem",
+                minWidth: "38px",
+                minHeight: "38px",
+                flexShrink: 0,
+              }}
+            >
+              ☰
+            </button>
+
+            <span style={{ fontSize: "0.7rem", color: t.glow, flexShrink: 0 }}>{navItems.find(n => n.key === tab)?.icon}</span>
+            <span style={{
+              fontSize: "clamp(0.72rem, 2.5vw, 0.78rem)",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: t.textMuted,
+              fontWeight: 500,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}>
               {navItems.find(n => n.key === tab)?.label}
             </span>
           </div>

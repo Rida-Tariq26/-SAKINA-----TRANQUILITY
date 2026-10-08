@@ -12,7 +12,7 @@ function LegalPage({ isDark, title, onBack, children }) {
         background: isDark ? "rgba(7,17,28,0.92)" : "rgba(232,220,203,0.92)",
         backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
         borderBottom: `1px solid ${t.border}`,
-        padding: "1rem 2rem",
+        padding: "0.8rem clamp(1rem, 3vw, 2rem)",
         display: "flex", alignItems: "center", gap: "1rem",
       }}>
         <button onClick={onBack} style={{
@@ -30,7 +30,7 @@ function LegalPage({ isDark, title, onBack, children }) {
           color: t.textPrimary, letterSpacing: "0.1em",
         }}>✦ {title}</span>
       </div>
-      <div style={{ maxWidth: "760px", margin: "0 auto", padding: "3rem 2rem 5rem" }}>
+      <div style={{ maxWidth: "760px", margin: "0 auto", padding: "clamp(1.5rem, 4vw, 3rem) clamp(1rem, 3vw, 2rem) 5rem" }}>
         {children}
       </div>
     </div>

@@ -33,12 +33,13 @@ export default function GoogleSignIn({ isDark, onSuccess, onBack, onNavigate }) 
   return (
     <div style={{
       minHeight: "100vh",
+      height: "100dvh",
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
       background: t.bgBase,
-      padding: "2rem",
+      padding: "clamp(1rem, 3vw, 2rem)",
       position: "relative",
     }}>
       {/* Background gradient blob */}
@@ -63,7 +64,7 @@ export default function GoogleSignIn({ isDark, onSuccess, onBack, onNavigate }) 
         WebkitBackdropFilter: "blur(24px) saturate(1.5)",
         border: `1px solid ${t.border}`,
         borderRadius: "20px",
-        padding: "3rem 2.5rem",
+        padding: "clamp(1.8rem, 5vw, 3rem) clamp(1.2rem, 4vw, 2.5rem)",
         boxShadow: t.shadow,
         position: "relative",
         zIndex: 1,

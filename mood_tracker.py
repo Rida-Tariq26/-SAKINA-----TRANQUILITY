@@ -249,12 +249,18 @@ def _build_trend_prompt(trends: dict, mode: str) -> str:
     )
 
 
-async def get_trend_commentary(trends: dict, mode: str, runner: Runner, session_id: str) -> str:
+async def get_trend_commentary(
+    trends: dict,
+    mode: str,
+    runner: Runner,
+    session_id: str,
+    user_id: str = "default_user",
+) -> str:
     """Gets AI-synthesized commentary on the user's mood trends with timeout protection."""
     prompt = _build_trend_prompt(trends, mode)
     try:
         response = runner.run_async(
-            user_id=USER_ID,
+            user_id=user_id or USER_ID,
             session_id=session_id,
             new_message=types.Content(role="user", parts=[types.Part(text=prompt)]),
         )
@@ -291,7 +297,7 @@ async def log_and_synthesize(
     """
     log_message = log_mood_tool(emotional_state, intensity, note, user_id=user_id)
     trends = analyze_trends(user_id=user_id, days=window_days)
-    commentary = await get_trend_commentary(trends, mode, runner, session_id)
+    commentary = await get_trend_commentary(trends, mode, runner, session_id, user_id=user_id)
 
     return {
         "log_message": log_message,
@@ -310,7 +316,7 @@ async def get_dashboard(
 ) -> dict:
     """Used by a GET endpoint to render the dashboard without requiring a new log entry."""
     trends = analyze_trends(user_id=user_id, days=window_days)
-    commentary = await get_trend_commentary(trends, mode, runner, session_id)
+    commentary = await get_trend_commentary(trends, mode, runner, session_id, user_id=user_id)
     return {
         "trends": trends,
         "commentary": commentary,

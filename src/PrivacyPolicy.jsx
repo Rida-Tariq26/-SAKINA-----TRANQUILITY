@@ -20,7 +20,7 @@ function LegalPage({ isDark, title, onBack, children }) {
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
         borderBottom: `1px solid ${t.border}`,
-        padding: "1rem 2rem",
+        padding: "0.8rem clamp(1rem, 3vw, 2rem)",
         display: "flex", alignItems: "center", gap: "1rem",
       }}>
         <button onClick={onBack} style={{
@@ -46,7 +46,7 @@ function LegalPage({ isDark, title, onBack, children }) {
       <div style={{
         maxWidth: "760px",
         margin: "0 auto",
-        padding: "3rem 2rem 5rem",
+        padding: "clamp(1.5rem, 4vw, 3rem) clamp(1rem, 3vw, 2rem) 5rem",
       }}>
         {children}
       </div>

@@ -421,7 +421,7 @@ export default function JournalTab({ isDark, tokensRef }) {
   return (
     <div
       style={{
-        padding: isZenMode ? "2rem" : "2rem 2.4rem",
+        padding: isZenMode ? "clamp(1rem, 3vw, 2rem)" : "clamp(1rem, 3vw, 2rem) clamp(0.9rem, 3vw, 2.4rem)",
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -684,7 +684,7 @@ export default function JournalTab({ isDark, tokensRef }) {
             className="glass-card"
             style={{
               borderRadius: "20px",
-              padding: isZenMode ? "2.5rem" : "1.8rem 2rem",
+              padding: isZenMode ? "clamp(1.2rem, 3.5vw, 2.5rem)" : "clamp(1.1rem, 3vw, 1.8rem) clamp(0.9rem, 3vw, 2rem)",
               display: "flex",
               flexDirection: "column",
               gap: "1.2rem",
@@ -775,7 +775,8 @@ export default function JournalTab({ isDark, tokensRef }) {
                 onChange={(e) => setTitle(e.target.value)}
                 style={{
                   flex: 1,
-                  minWidth: "260px",
+                  minWidth: 0,
+                  width: "100%",
                   background: "transparent",
                   border: "none",
                   borderBottom: `1px solid ${t.border}`,
@@ -957,7 +958,7 @@ export default function JournalTab({ isDark, tokensRef }) {
             }}
           >
             {/* Search Input */}
-            <div style={{ flex: 1, minWidth: "220px", position: "relative" }}>
+            <div style={{ flex: 1, minWidth: "min(100%, 200px)", position: "relative" }}>
               <input
                 type="text"
                 placeholder="Search reflections by keywords…"
@@ -1081,7 +1082,7 @@ export default function JournalTab({ isDark, tokensRef }) {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))",
                 gap: "1.2rem",
               }}
             >
@@ -1299,10 +1300,11 @@ export default function JournalTab({ isDark, tokensRef }) {
             style={{
               width: "100%",
               maxWidth: "680px",
-              maxHeight: "85vh",
+              maxHeight: "88dvh",
+              maxHeight: "88vh",
               overflowY: "auto",
-              borderRadius: "24px",
-              padding: "2.4rem",
+              borderRadius: "20px",
+              padding: "clamp(1.1rem, 3.5vw, 2.4rem)",
               position: "relative",
               border: `1px solid ${t.borderGlow}`,
               boxShadow: "0 25px 70px rgba(0,0,0,0.6)",
@@ -1399,6 +1401,8 @@ export default function JournalTab({ isDark, tokensRef }) {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
+                flexWrap: "wrap",
+                gap: "10px",
                 borderTop: `1px solid ${t.border}`,
                 paddingTop: "1.2rem",
                 marginTop: "0.8rem",
@@ -1466,8 +1470,9 @@ export default function JournalTab({ isDark, tokensRef }) {
           <div
             className="glass-card"
             style={{
+              width: "100%",
               maxWidth: "420px",
-              padding: "2rem",
+              padding: "clamp(1.2rem, 3.5vw, 2rem)",
               borderRadius: "20px",
               textAlign: "center",
               display: "flex",

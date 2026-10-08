@@ -456,6 +456,7 @@ async def get_practice_personalizations(
     mode: str,
     runner: Runner,
     session_id: str,
+    user_id: str = USER_ID,
 ) -> list:
     """
     Asks the agent to produce one personalized note per practice, explaining why
@@ -499,7 +500,7 @@ async def get_practice_personalizations(
 
     try:
         response = runner.run_async(
-            user_id=USER_ID,
+            user_id=user_id or USER_ID,
             session_id=session_id,
             new_message=types.Content(
                 role="user",
@@ -523,7 +524,13 @@ async def get_practice_personalizations(
         return fallback
 
 
-async def get_ai_commentary(emotional_state: str, mode: str, runner: Runner, session_id: str) -> str:
+async def get_ai_commentary(
+    emotional_state: str,
+    mode: str,
+    runner: Runner,
+    session_id: str,
+    user_id: str = USER_ID,
+) -> str:
     """Gets personalised AI commentary for the given emotional state and mode."""
     is_islamic = mode not in ("secular", "clinical_scientific")
     system_prompt = DHIKR_COMMENTARY_PROMPT if is_islamic else CLINICAL_SCIENTIFIC_COMMENTARY_PROMPT
@@ -537,7 +544,7 @@ async def get_ai_commentary(emotional_state: str, mode: str, runner: Runner, ses
 
     try:
         response = runner.run_async(
-            user_id=USER_ID,
+            user_id=user_id or USER_ID,
             session_id=session_id,
             new_message=types.Content(
                 role="user",
@@ -591,7 +598,12 @@ display_secular = display_clinical_scientific
 # SECTION 5: EMOTION RESOLUTION
 # ─────────────────────────────────────────────
 
-async def resolve_emotion_with_ai(free_text: str, runner: Runner, session_id: str) -> str:
+async def resolve_emotion_with_ai(
+    free_text: str,
+    runner: Runner,
+    session_id: str,
+    user_id: str = USER_ID,
+) -> str:
     """
     Uses Gemini to map a free-text emotional description to one of the
     canonical emotion keys in our table.
@@ -605,7 +617,7 @@ async def resolve_emotion_with_ai(free_text: str, runner: Runner, session_id: st
 
     try:
         response = runner.run_async(
-            user_id=USER_ID,
+            user_id=user_id or USER_ID,
             session_id=session_id,
             new_message=types.Content(
                 role="user",

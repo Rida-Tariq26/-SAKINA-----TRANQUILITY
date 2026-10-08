@@ -118,10 +118,10 @@ const MoodTab = ({ isDark, tokensRef }) => {
     const signal = trends?.overall_signal ? SIGNAL_COPY[trends.overall_signal] : null;
 
     return (
-        <div style={{ padding: "2.2rem 2rem 2.6rem", overflowY: "auto", height: "100%", animation: "fadeUp 0.5s ease forwards" }}>
+        <div style={{ padding: "clamp(1rem, 3vw, 2.2rem) clamp(0.9rem, 3vw, 2rem) 2.6rem", overflowY: "auto", height: "100%", animation: "fadeUp 0.5s ease forwards" }}>
 
             {/* Mode switch */}
-            <div style={{ display: "flex", gap: "0.6rem", marginBottom: "2.2rem" }}>
+            <div style={{ display: "flex", gap: "0.6rem", marginBottom: "1.8rem", flexWrap: "wrap" }}>
                 {[
                     { key: "islamic", label: "Islamic" },
                     { key: "clinical_scientific", label: "Clinical & Scientific" },
@@ -154,7 +154,7 @@ const MoodTab = ({ isDark, tokensRef }) => {
             </div>
 
             {/* ── Log entry card ── */}
-            <div className="glass-card" style={{ borderRadius: "14px", padding: "1.8rem", marginBottom: "2rem" }}>
+            <div className="glass-card" style={{ borderRadius: "14px", padding: "clamp(1.1rem, 3vw, 1.8rem)", marginBottom: "2rem" }}>
                 <span style={labelStyle}>How are you feeling right now?</span>
 
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.55rem", marginBottom: "1.6rem" }}>
@@ -268,7 +268,7 @@ const MoodTab = ({ isDark, tokensRef }) => {
                         <div style={{ display: "flex", gap: "0.8rem", marginBottom: "1.4rem", flexWrap: "wrap" }}>
                             {signal && (
                                 <div className="glass-card" style={{
-                                    borderRadius: "12px", padding: "1rem 1.3rem", flex: "1 1 160px",
+                                    borderRadius: "12px", padding: "1rem 1.2rem", flex: "1 1 130px", minWidth: 0,
                                     display: "flex", alignItems: "center", gap: "10px",
                                 }}>
                                     <span style={{ fontSize: "1.1rem", color: t.gold }}>{signal.icon}</span>
@@ -279,7 +279,7 @@ const MoodTab = ({ isDark, tokensRef }) => {
                                 </div>
                             )}
                             <div className="glass-card" style={{
-                                borderRadius: "12px", padding: "1rem 1.3rem", flex: "1 1 160px",
+                                borderRadius: "12px", padding: "1rem 1.2rem", flex: "1 1 130px", minWidth: 0,
                             }}>
                                 <div style={{ fontSize: "0.85rem", color: t.textPrimary, fontWeight: 500, textTransform: "capitalize" }}>
                                     {trends.dominant_state}
@@ -288,7 +288,7 @@ const MoodTab = ({ isDark, tokensRef }) => {
                             </div>
                             {trends.logging_streak_days > 0 && (
                                 <div className="glass-card" style={{
-                                    borderRadius: "12px", padding: "1rem 1.3rem", flex: "1 1 160px",
+                                    borderRadius: "12px", padding: "1rem 1.2rem", flex: "1 1 130px", minWidth: 0,
                                 }}>
                                     <div style={{ fontSize: "0.85rem", color: t.textPrimary, fontWeight: 500 }}>
                                         {trends.logging_streak_days} day{trends.logging_streak_days === 1 ? "" : "s"}
@@ -300,7 +300,7 @@ const MoodTab = ({ isDark, tokensRef }) => {
                     )}
 
                     {/* AI commentary */}
-                    <div className="glass-card" style={{ borderRadius: "14px", padding: "1.8rem", marginBottom: "1.6rem" }}>
+                    <div className="glass-card" style={{ borderRadius: "14px", padding: "clamp(1.1rem, 3vw, 1.8rem)", marginBottom: "1.6rem" }}>
                         <span style={labelStyle}>Reflection</span>
                         <p style={{ fontSize: "0.9rem", lineHeight: 1.85, color: t.textSecond, fontWeight: 300 }}>
                             {dashboard?.commentary}
@@ -317,22 +317,24 @@ const MoodTab = ({ isDark, tokensRef }) => {
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "space-between",
+                                        flexWrap: "wrap",
+                                        gap: "8px",
                                         background: t.glass,
                                         backdropFilter: "blur(12px)",
                                         WebkitBackdropFilter: "blur(12px)",
                                         border: `1px solid ${t.border}`,
                                         borderRadius: "10px",
-                                        padding: "10px 16px",
+                                        padding: "10px 14px",
                                     }}>
-                                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                                            <span style={{ fontSize: "0.82rem", color: t.textPrimary, textTransform: "capitalize" }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: "1 1 160px", minWidth: 0 }}>
+                                            <span style={{ fontSize: "0.82rem", color: t.textPrimary, textTransform: "capitalize", fontWeight: 500, flexShrink: 0 }}>
                                                 {entry.state}
                                             </span>
                                             {entry.note && (
-                                                <span style={{ fontSize: "0.74rem", color: t.textMuted }}>— {entry.note}</span>
+                                                <span style={{ fontSize: "0.74rem", color: t.textMuted, overflowWrap: "anywhere", wordBreak: "break-word" }}>— {entry.note}</span>
                                             )}
                                         </div>
-                                        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0, marginLeft: "auto" }}>
                                             <span style={{ fontSize: "0.72rem", color: t.textMuted }}>
                                                 {entry.timestamp?.slice(0, 10)}
                                             </span>
