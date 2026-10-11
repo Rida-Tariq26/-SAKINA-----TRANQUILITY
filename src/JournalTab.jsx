@@ -499,7 +499,7 @@ export default function JournalTab({ isDark, tokensRef }) {
                 transition: "all 0.2s",
               }}
             >
-              ✍️ Write Entry
+              Write Entry
             </button>
             <button
               onClick={() => setViewMode("history")}
@@ -518,7 +518,7 @@ export default function JournalTab({ isDark, tokensRef }) {
                 gap: "6px",
               }}
             >
-              📖 Past Entries
+              Past Entries
               <span
                 style={{
                   fontSize: "0.68rem",
@@ -790,7 +790,6 @@ export default function JournalTab({ isDark, tokensRef }) {
               />
 
               <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.78rem", color: t.textMuted }}>
-                <span>🕒</span>
                 <span>{new Date(entryDate).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
               </div>
             </div>
@@ -975,8 +974,11 @@ export default function JournalTab({ isDark, tokensRef }) {
                   outline: "none",
                 }}
               />
-              <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "12px", color: t.textMuted }}>
-                🔍
+              <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center", color: t.textMuted }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
               </span>
             </div>
 
