@@ -1049,7 +1049,7 @@ export default function JournalTab({ isDark, tokensRef }) {
                 margin: "2rem auto",
               }}
             >
-              <div style={{ fontSize: "2.4rem", color: t.gold }}>📖</div>
+              <div style={{ fontSize: "2rem", color: t.gold }}>✦</div>
               <h3 style={{ fontSize: "1.2rem", fontWeight: 400, color: t.textPrimary }}>
                 {searchQuery || filterMood ? "No reflections match your search" : "Your Sanctuary Awaits"}
               </h3>
@@ -1077,7 +1077,7 @@ export default function JournalTab({ isDark, tokensRef }) {
                   boxShadow: `0 2px 10px rgba(196,132,90,0.3)`,
                 }}
               >
-                ✍️ Write First Entry
+                Write First Entry
               </button>
             </div>
           ) : (
@@ -1238,10 +1238,17 @@ export default function JournalTab({ isDark, tokensRef }) {
                             fontSize: "0.72rem",
                             color: t.textMuted,
                             cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                           title="Download Markdown"
                         >
-                          📥
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
                         </button>
 
                         {/* Delete */}
@@ -1255,12 +1262,18 @@ export default function JournalTab({ isDark, tokensRef }) {
                             fontSize: "0.72rem",
                             color: t.textMuted,
                             cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                           title="Delete Reflection"
                           onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
                           onMouseLeave={(e) => (e.currentTarget.style.color = t.textMuted)}
                         >
-                          🗑
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          </svg>
                         </button>
                       </div>
                     </div>
@@ -1420,9 +1433,17 @@ export default function JournalTab({ isDark, tokensRef }) {
                   fontSize: "0.78rem",
                   color: t.textMuted,
                   cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
                 }}
               >
-                📥 Download Markdown
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Download Markdown
               </button>
 
               <div style={{ display: "flex", gap: "10px" }}>
@@ -1483,7 +1504,7 @@ export default function JournalTab({ isDark, tokensRef }) {
               border: `1px solid rgba(239, 68, 68, 0.3)`,
             }}
           >
-            <div style={{ fontSize: "2rem", color: "#f87171" }}>⚠️</div>
+            <div style={{ fontSize: "1.8rem", color: "#f87171" }}>⚠</div>
             <h3 style={{ fontSize: "1.1rem", fontWeight: 500, color: t.textPrimary }}>
               Permanently delete this reflection?
             </h3>
