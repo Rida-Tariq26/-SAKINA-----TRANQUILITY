@@ -1421,15 +1421,26 @@ const AppPage = ({ isDark, onToggleTheme, onNavigate, onLogout }) => {
         {/* Logo in sidebar */}
         <div
           onClick={() => onNavigate("landing")}
-          style={{ marginBottom: "2rem", paddingLeft: "0.3rem", cursor: "pointer" }}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            marginBottom: "2rem",
+            cursor: "pointer",
+            textAlign: "center",
+            gap: "6px",
+          }}
         >
-          <SakinaLogo size={52} color={t.gold} style={{ marginBottom: "4px" }} />
+          <SakinaLogo size={52} color={t.gold} style={{ display: "block" }} />
           <div className="display" style={{
             fontSize: "1.25rem",
             fontWeight: 400,
             color: t.textPrimary,
             letterSpacing: "0.12em",
-            marginTop: "4px",
+            textAlign: "center",
+            width: "100%",
           }}>Sakina</div>
         </div>
 
