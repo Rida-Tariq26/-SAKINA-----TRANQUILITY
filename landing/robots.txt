@@ -1,0 +1,5 @@
+# robots.txt for Sakina Landing Page (Render Static Site)
+User-agent: *
+Allow: /
+
+Sitemap: https://sakina-landing.onrender.com/sitemap.xml

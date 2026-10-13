@@ -15,3 +15,9 @@ services:
         sync: false
       - key: VITE_GOOGLE_CLIENT_ID
         sync: false
+
+  - type: web
+    name: sakina-landing
+    runtime: static
+    buildCommand: ""
+    publishDir: ./landing
