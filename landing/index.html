@@ -19,6 +19,9 @@
   <!-- Canonical URL: Update with your production Render Static Site URL once live -->
   <link rel="canonical" href="https://sakina-islamic-wellness-ai.onrender.com/" />
 
+  <!-- Backend API Service URL: Used by client forms for feedback submissions -->
+  <meta name="sakina-api-base" content="https://sakina-tranquility.onrender.com" />
+
   <!-- Favicons and Icons -->
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <link rel="alternate icon" type="image/png" href="assets/logo.png" />
@@ -167,6 +170,7 @@
           <li><a href="#foundations" class="nav-link">Tradition & Science</a></li>
           <li><a href="#privacy" class="nav-link">Privacy</a></li>
           <li><a href="#faq" class="nav-link">FAQ</a></li>
+          <li><a href="#feedback" class="nav-link">Reviews</a></li>
           <li><a href="#disclaimer" class="nav-link nav-link-disclaimer">Disclaimer</a></li>
         </ul>
         <div class="nav-cta">
@@ -904,6 +908,142 @@
       </div>
     </section>
 
+    <!-- Section 8: Public Reviews & Community Experience -->
+    <section class="section section-reviews" id="feedback" aria-labelledby="reviews-title">
+      <div class="container reviews-container">
+        <div class="section-header text-center">
+          <span class="section-kicker">Community Reflections</span>
+          <h2 id="reviews-title" class="section-title">Share Your Experience</h2>
+          <p class="section-subtitle">
+            Reflections from seekers finding presence, emotional balance, and spiritual calm with Sakina.
+          </p>
+        </div>
+
+        <!-- Rating Summary Bar -->
+        <div class="reviews-summary-bar" id="reviewsSummaryBar">
+          <div class="summary-score-group">
+            <span class="summary-score" id="summaryAvgScore">5.0</span>
+            <div class="summary-stars" id="summaryStars" aria-label="Average 5.0 out of 5 stars">
+              <svg class="star-icon filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <svg class="star-icon filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <svg class="star-icon filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <svg class="star-icon filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <svg class="star-icon filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </div>
+            <span class="summary-count" id="summaryCountText">Based on published community reviews</span>
+          </div>
+        </div>
+
+        <!-- Recent Reviews Compact Grid -->
+        <div class="reviews-grid" id="reviewsGrid" aria-label="Community reviews">
+          <!-- Populated dynamically via script.js -->
+        </div>
+
+        <!-- Compact Review Form Card -->
+        <div class="review-form-card">
+          <!-- Success State (Hidden by default) -->
+          <div id="reviewSuccessState" class="review-status-card" role="region" aria-live="polite" hidden>
+            <div class="review-status-icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
+            <p class="review-status-text" id="reviewSuccessMessage">
+              Thank you for sharing your experience! Your review will appear publicly once approved.
+            </p>
+            <button type="button" class="btn btn-secondary btn-sm" id="reviewSubmitAnotherBtn">
+              Write Another Review
+            </button>
+          </div>
+
+          <!-- Active Form -->
+          <form id="reviewForm" class="review-form" novalidate>
+            <!-- Honeypot for spam bots -->
+            <div class="hp-trap" aria-hidden="true" style="position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none;">
+              <label for="reviewHoneypot">Do not fill this field</label>
+              <input type="text" id="reviewHoneypot" name="hp_website" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <!-- Interactive Star Rating (1-5 stars, NO numbers next to stars) -->
+            <div class="form-group rating-form-group">
+              <div class="rating-header">
+                <label class="form-label" id="ratingLabel">Your Rating <span class="label-required" aria-hidden="true">*</span></label>
+              </div>
+              <div class="star-rating-widget" id="starRatingWidget" role="radiogroup" aria-labelledby="ratingLabel">
+                <button type="button" class="star-btn" data-rating="1" aria-label="1 star" role="radio" aria-checked="false">
+                  <svg class="star-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                </button>
+                <button type="button" class="star-btn" data-rating="2" aria-label="2 stars" role="radio" aria-checked="false">
+                  <svg class="star-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                </button>
+                <button type="button" class="star-btn" data-rating="3" aria-label="3 stars" role="radio" aria-checked="false">
+                  <svg class="star-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                </button>
+                <button type="button" class="star-btn" data-rating="4" aria-label="4 stars" role="radio" aria-checked="false">
+                  <svg class="star-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                </button>
+                <button type="button" class="star-btn" data-rating="5" aria-label="5 stars" role="radio" aria-checked="false">
+                  <svg class="star-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                </button>
+              </div>
+              <input type="hidden" id="reviewRatingInput" name="rating" value="" />
+              <div class="field-error" id="reviewRatingError" role="alert" aria-live="polite"></div>
+            </div>
+
+            <!-- Single Review Text Area with short placeholder -->
+            <div class="form-group">
+              <label for="reviewMessage" class="form-label">
+                Your Review <span class="label-required" aria-hidden="true">*</span>
+              </label>
+              <textarea id="reviewMessage" name="message" class="form-textarea review-textarea" rows="3" minlength="10" maxlength="1000" required placeholder="Write your review..." aria-describedby="reviewMessageError"></textarea>
+              <div class="field-error" id="reviewMessageError" role="alert" aria-live="polite"></div>
+            </div>
+
+            <!-- Display Name + Anonymous Option -->
+            <div class="form-group">
+              <div class="review-author-row">
+                <input type="text" id="reviewName" name="name" class="form-input review-name-input" maxlength="50" placeholder="Display name (optional)" autocomplete="name" />
+                <label class="anonymous-toggle">
+                  <input type="checkbox" id="reviewAnonymousCheckbox" />
+                  <span>Post anonymously</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- General Error Message -->
+            <div class="form-alert form-alert-error" id="reviewGeneralError" role="alert" aria-live="assertive" hidden>
+              <span id="reviewGeneralErrorText"></span>
+            </div>
+
+            <!-- Submit Button ("Post Review") & Concise Privacy Note -->
+            <div class="review-actions-row">
+              <button type="submit" id="reviewSubmitBtn" class="btn btn-primary btn-submit">
+                <span class="btn-text">Post Review</span>
+                <svg class="spinner-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true" style="display:none;">
+                  <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+                  <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path>
+                </svg>
+              </button>
+              <p class="review-privacy-note">
+                Reviews are published after moderation. Your IP and personal details are never shared.
+              </p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <!-- Site Footer -->
@@ -934,6 +1074,7 @@
               <li><a href="#foundations">Tradition & Science</a></li>
               <li><a href="#privacy">Privacy & Security</a></li>
               <li><a href="#faq">FAQ</a></li>
+              <li><a href="#feedback">Reviews</a></li>
             </ul>
           </div>
 

@@ -13,8 +13,12 @@ import sys
 import json
 import asyncio
 import logging
+import hashlib
+import html
+import re
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, Header, Request, status
+from fastapi import FastAPI, HTTPException, Header, Request, status, Query
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
@@ -38,6 +42,8 @@ from database import (
     add_journal_entry, get_journal_entries, get_journal_entry,
     update_journal_entry, delete_journal_entry,
     export_user_data, delete_user_data,
+    add_feedback, count_recent_feedback_by_ip, get_feedback_submissions,
+    approve_feedback, get_public_reviews, seed_sample_reviews_if_empty,
 )
 
 # Import MCP Client utilities
@@ -201,6 +207,7 @@ async def lifespan(app: FastAPI):
 
     # Initialise SQLite database
     init_db()
+    seed_sample_reviews_if_empty()
 
     ctx = None
     session_ctx = None
@@ -268,10 +275,51 @@ async def lifespan(app: FastAPI):
 # Initialize FastAPI with the lifespan orchestrator
 app = FastAPI(lifespan=lifespan)
 
+# ─────────────────────────────────────────────
+# CORS CONFIGURATION (Enables Render Static Landing Site access)
+# ─────────────────────────────────────────────
+cors_origins_env = os.environ.get("CORS_ORIGINS", "")
+allowed_origins = [
+    "https://sakina-landing.onrender.com",
+    "https://sakina-islamic-wellness-ai.onrender.com",
+    "https://sakina-tranquility.onrender.com",
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5500",
+]
+if cors_origins_env:
+    for origin in cors_origins_env.split(","):
+        origin = origin.strip()
+        if origin and origin not in allowed_origins:
+            allowed_origins.append(origin)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_origin_regex=r"^https:\/\/.*\.onrender\.com$",
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+)
+
 
 # ─────────────────────────────────────────────
 # PYDANTIC SCHEMAS
 # ─────────────────────────────────────────────
+class FeedbackCreateRequest(BaseModel):
+    feedback_type: Optional[str] = "review"
+    message: str
+    rating: Optional[int] = None
+    name: Optional[str] = None
+    email: Optional[str] = None
+    hp_website: Optional[str] = None  # Honeypot field for spam prevention
+
+class ModerateFeedbackRequest(BaseModel):
+    is_approved: bool = True
+
 class TokenVerifyRequest(BaseModel):
     token: str
 
@@ -872,6 +920,211 @@ async def delete_journal_endpoint(
     except Exception as e:
         logger.error(f"Error deleting journal entry: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ─────────────────────────────────────────────
+# VISITOR FEEDBACK & PUBLIC REVIEWS ENDPOINTS
+# ─────────────────────────────────────────────
+ALLOWED_FEEDBACK_TYPES = {"general", "feature", "bug", "experience", "review"}
+
+@app.post("/api/feedback")
+async def submit_feedback_endpoint(req: FeedbackCreateRequest, request: Request):
+    """
+    Public feedback and review submission endpoint for the landing page.
+    Validates, sanitizes, rate-limits, and securely persists visitor feedback.
+    Never exposes internal error traces, API keys, or private records.
+    """
+    try:
+        # 1. Honeypot check (spam bot trap)
+        if req.hp_website and req.hp_website.strip():
+            logger.info("Feedback honeypot triggered; discarding bot submission.")
+            return {"status": "success", "message": "Thank you for sharing your feedback with Sakina."}
+
+        # 2. Rate limiting via salted client IP hash
+        client_ip = request.headers.get("x-forwarded-for", "")
+        if client_ip:
+            client_ip = client_ip.split(",")[0].strip()
+        else:
+            client_ip = request.client.host if request.client else "unknown"
+
+        ip_salt = os.environ.get("FEEDBACK_IP_SALT", "sakina_privacy_salt_2026")
+        ip_hash = hashlib.sha256(f"{client_ip}:{ip_salt}".encode("utf-8")).hexdigest()[:32]
+
+        recent_count = count_recent_feedback_by_ip(ip_hash, window_seconds=3600)
+        if recent_count >= 5:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="You have submitted feedback recently. Please wait a while before submitting again.",
+            )
+
+        # 3. Validate feedback type (defaults to 'review' if not provided)
+        raw_type = (req.feedback_type or "review").strip().lower()
+        cleaned_type = raw_type if raw_type else "review"
+        if cleaned_type not in ALLOWED_FEEDBACK_TYPES:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid feedback type '{cleaned_type}'. Allowed types: {', '.join(sorted(ALLOWED_FEEDBACK_TYPES))}.",
+            )
+
+        # 4. Validate rating (required for reviews, optional for other feedback types)
+        cleaned_rating = req.rating
+        if cleaned_type == "review" and cleaned_rating is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Rating is required for reviews (1 to 5 stars).",
+            )
+        if cleaned_rating is not None:
+            if not isinstance(cleaned_rating, int) or cleaned_rating < 1 or cleaned_rating > 5:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Rating must be an integer between 1 and 5.",
+                )
+
+        # 5. Validate & sanitize message (required, 10-2000 chars)
+        raw_message = (req.message or "").strip()
+        if len(raw_message) < 10:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Feedback message must be at least 10 characters long.",
+            )
+        if len(raw_message) > 2000:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Feedback message cannot exceed 2000 characters.",
+            )
+
+        # Sanitize HTML tags
+        cleaned_message = html.escape(raw_message)
+
+        # 6. Validate & sanitize name (optional display name, max 50 chars)
+        raw_name = (req.name or "").strip()
+        if not raw_name or raw_name.lower() in ("anonymous", "anon"):
+            cleaned_name = "Anonymous"
+        else:
+            cleaned_name = html.escape(raw_name[:50])
+
+        # 7. Validate & sanitize email (optional, max 100 chars, valid regex)
+        cleaned_email = None
+        if req.email and req.email.strip():
+            raw_email = req.email.strip().lower()
+            if len(raw_email) > 100:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Email address cannot exceed 100 characters.",
+                )
+            if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", raw_email):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Please enter a valid email address.",
+                )
+            cleaned_email = raw_email
+
+        # 8. Extract sanitized User-Agent
+        raw_ua = request.headers.get("user-agent", "")
+        cleaned_ua = raw_ua[:250] if raw_ua else None
+
+        # 9. Moderation / publication status (auto-approve configurable via env var)
+        auto_approve = os.environ.get("AUTO_APPROVE_REVIEWS", "false").lower() in ("true", "1", "yes")
+        is_approved = 1 if auto_approve else 0
+
+        # 10. Persist to SQLite
+        add_feedback(
+            feedback_type=cleaned_type,
+            message=cleaned_message,
+            rating=cleaned_rating,
+            name=cleaned_name,
+            email=cleaned_email,
+            ip_hash=ip_hash,
+            user_agent=cleaned_ua,
+            is_approved=is_approved,
+        )
+
+        # Redacted logging (Never log message text, IP, or user email)
+        logger.info("Feedback successfully submitted: type=%s, rating=%s, approved=%s", cleaned_type, cleaned_rating, is_approved)
+
+        feedback_msg = (
+            "Thank you for sharing your experience! Your review will appear publicly once approved."
+            if not is_approved
+            else "Thank you for sharing your experience!"
+        )
+        return {
+            "status": "success",
+            "message": feedback_msg,
+            "is_approved": bool(is_approved),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error processing feedback submission: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while saving your feedback. Please try again later.",
+        )
+
+
+@app.get("/api/reviews")
+@app.get("/api/feedback/public")
+async def get_public_reviews_endpoint(limit: int = 10, offset: int = 0):
+    """
+    Public endpoint to retrieve approved reviews for the landing page.
+    Excludes all sensitive/private information (emails, IP hashes, user agents, unapproved submissions).
+    Returns average rating, total count of approved reviews, and recent approved reviews.
+    """
+    try:
+        data = get_public_reviews(limit=limit, offset=offset)
+        return data
+    except Exception as e:
+        logger.error(f"Error fetching public reviews: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve reviews.",
+        )
+
+
+@app.post("/api/admin/feedback/{feedback_id}/approve")
+@app.patch("/api/admin/feedback/{feedback_id}/approve")
+async def moderate_feedback_endpoint(
+    feedback_id: int,
+    req: Optional[ModerateFeedbackRequest] = None,
+    x_admin_key: Optional[str] = Header(None, alias="X-Admin-Key"),
+):
+    """
+    Secure administrative endpoint to approve or reject a review for public display.
+    Strictly protected by X-Admin-Key header and never accessible publicly.
+    """
+    expected_key = os.environ.get("SAKINA_ADMIN_KEY")
+    if not expected_key or not x_admin_key or x_admin_key != expected_key:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Unauthorized. Admin authorization required.",
+        )
+    should_approve = req.is_approved if req else True
+    success = approve_feedback(feedback_id, is_approved=1 if should_approve else 0)
+    if not success:
+        raise HTTPException(status_code=404, detail="Review not found.")
+    action = "approved" if should_approve else "rejected"
+    return {"status": "success", "message": f"Review #{feedback_id} has been {action}."}
+
+
+@app.get("/api/admin/feedback")
+async def get_admin_feedback_endpoint(
+    x_admin_key: Optional[str] = Header(None, alias="X-Admin-Key"),
+    moderation_status: Optional[str] = Query(None, alias="status"),
+    limit: int = 50,
+    offset: int = 0,
+):
+    """
+    Secure administrative endpoint to inspect submitted feedback.
+    Strictly protected by X-Admin-Key header and never accessible publicly.
+    """
+    expected_key = os.environ.get("SAKINA_ADMIN_KEY")
+    if not expected_key or not x_admin_key or x_admin_key != expected_key:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Unauthorized. Admin authorization required.",
+        )
+    return {"feedback": get_feedback_submissions(limit=limit, offset=offset, status=moderation_status)}
 
 
 # ─────────────────────────────────────────────

@@ -64,5 +64,31 @@ Once deployed on Render, update the following placeholders with your final URL (
    - `<loc>https://your-url.onrender.com/</loc>`
 3. **Robots.txt in `landing/robots.txt`**:
    - `Sitemap: https://your-url.onrender.com/sitemap.xml`
-4. **App Launch CTAs in `landing/index.html`**:
-   - Update `https://sakina-tranquility.onrender.com` to your deployed full-stack web service URL.
+4. **App Launch CTAs & Backend API in `landing/index.html`**:
+   - Update `https://sakina-tranquility.onrender.com` in `<meta name="sakina-api-base">` and launch links to your deployed backend service URL.
+5. **Public Reviews & Experience Section**:
+   - The landing page includes a compact public review section ("Share Your Experience").
+   - Reviews are submitted without requiring an account and held for moderation by default.
+   - Public visitors only see approved reviews via `GET /api/reviews` (which calculates the average rating, total count, and strips all private information like emails and IP hashes).
+   - Review moderation can be conducted via the administrative CLI:
+     ```bash
+     # View all feedback and reviews with moderation status
+     python view_feedback.py
+
+     # View pending reviews needing approval
+     python view_feedback.py --status pending
+
+     # Approve a review to appear publicly on the landing page
+     python view_feedback.py --approve <ID>
+
+     # Reject or hide a review
+     python view_feedback.py --reject <ID>
+     ```
+   - Or programmatically via the protected API endpoints:
+     - `GET /api/admin/feedback` (Inspect all records, protected by `X-Admin-Key`)
+     - `POST /api/admin/feedback/{id}/approve` (Approve/reject review, protected by `X-Admin-Key`)
+   - To enable instant auto-approval for development or specific deployments, set the environment variable:
+     ```bash
+     AUTO_APPROVE_REVIEWS=true
+     ```
+

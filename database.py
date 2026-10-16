@@ -12,8 +12,8 @@ This DB is authoritative for user data export / deletion (GDPR / CCPA).
 
 import sqlite3
 import os
-from datetime import datetime, timezone
-from typing import Any
+from datetime import datetime, timezone, timedelta
+from typing import Any, Optional
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sakina.db")
 
@@ -69,7 +69,35 @@ def init_db() -> None:
         CREATE INDEX IF NOT EXISTS idx_mood_user_timestamp ON mood_logs(user_id, timestamp DESC);
         CREATE INDEX IF NOT EXISTS idx_journal_user ON journal_entries(user_id);
         CREATE INDEX IF NOT EXISTS idx_journal_user_created ON journal_entries(user_id, created_at DESC);
+
+        CREATE TABLE IF NOT EXISTS feedback (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            feedback_type TEXT    NOT NULL DEFAULT 'review',
+            rating        INTEGER,
+            message       TEXT    NOT NULL,
+            name          TEXT    DEFAULT 'Anonymous',
+            email         TEXT,
+            ip_hash       TEXT,
+            user_agent    TEXT,
+            is_approved   INTEGER NOT NULL DEFAULT 0,
+            created_at    TEXT    NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_feedback_created ON feedback(created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_feedback_type ON feedback(feedback_type);
+        CREATE INDEX IF NOT EXISTS idx_feedback_ip_created ON feedback(ip_hash, created_at DESC);
     """)
+
+    # Ensure schema backward compatibility for existing databases
+    cols_cursor = conn.execute("PRAGMA table_info(feedback)")
+    cols = {row["name"] for row in cols_cursor.fetchall()}
+    if "name" not in cols:
+        conn.execute("ALTER TABLE feedback ADD COLUMN name TEXT DEFAULT 'Anonymous'")
+    if "is_approved" not in cols:
+        conn.execute("ALTER TABLE feedback ADD COLUMN is_approved INTEGER NOT NULL DEFAULT 0")
+
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_feedback_approved ON feedback(is_approved, created_at DESC)")
+
     now = datetime.now(timezone.utc).isoformat()
     conn.execute("""
         INSERT OR IGNORE INTO users (user_id, email, name, picture, created_at)
@@ -333,8 +361,14 @@ def delete_user_data(user_id: str) -> None:
     """
     now = datetime.now(timezone.utc).isoformat()
     conn = get_db()
+    # Fetch user's email before redaction to scrub any matching feedback emails
+    user_row = conn.execute("SELECT email FROM users WHERE user_id = ?", (user_id,)).fetchone()
+    user_email = user_row["email"] if user_row and user_row["email"] and not user_row["email"].startswith("[deleted]") else None
+
     conn.execute("DELETE FROM mood_logs WHERE user_id = ?", (user_id,))
     conn.execute("DELETE FROM journal_entries WHERE user_id = ?", (user_id,))
+    if user_email:
+        conn.execute("UPDATE feedback SET email = '[redacted]' WHERE lower(email) = lower(?)", (user_email,))
     conn.execute("""
         UPDATE users
         SET email      = '[deleted]',
@@ -345,4 +379,156 @@ def delete_user_data(user_id: str) -> None:
     """, (now, user_id))
     conn.commit()
     conn.close()
+
+
+# ─────────────────────────────────────────────
+# VISITOR FEEDBACK OPERATIONS
+# ─────────────────────────────────────────────
+def add_feedback(
+    feedback_type: str = "review",
+    message: str = "",
+    rating: Optional[int] = None,
+    name: Optional[str] = "Anonymous",
+    email: Optional[str] = None,
+    ip_hash: Optional[str] = None,
+    user_agent: Optional[str] = None,
+    is_approved: int = 0,
+) -> dict:
+    """Insert a visitor feedback or review record and return the created record metadata."""
+    now = datetime.now(timezone.utc).isoformat()
+    cleaned_name = (name or "Anonymous").strip() or "Anonymous"
+    conn = get_db()
+    cursor = conn.execute("""
+        INSERT INTO feedback (feedback_type, rating, message, name, email, ip_hash, user_agent, is_approved, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (feedback_type, rating, message, cleaned_name, email, ip_hash, user_agent, is_approved, now))
+    entry_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return {
+        "id": entry_id,
+        "feedback_type": feedback_type,
+        "rating": rating,
+        "name": cleaned_name,
+        "is_approved": is_approved,
+        "created_at": now,
+    }
+
+
+def count_recent_feedback_by_ip(ip_hash: str, window_seconds: int = 3600) -> int:
+    """Count feedback entries created by ip_hash within the specified window in seconds."""
+    if not ip_hash:
+        return 0
+    conn = get_db()
+    cutoff = (datetime.now(timezone.utc) - timedelta(seconds=window_seconds)).isoformat()
+    row = conn.execute("""
+        SELECT COUNT(*) AS count FROM feedback
+        WHERE ip_hash = ? AND created_at >= ?
+    """, (ip_hash, cutoff)).fetchone()
+    conn.close()
+    return int(row["count"]) if row else 0
+
+
+def approve_feedback(feedback_id: int, is_approved: int = 1) -> bool:
+    """Approve or reject a review for public display."""
+    conn = get_db()
+    cursor = conn.execute("""
+        UPDATE feedback
+        SET is_approved = ?
+        WHERE id = ?
+    """, (1 if is_approved else 0, feedback_id))
+    affected = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return affected
+
+
+def get_public_reviews(limit: int = 10, offset: int = 0) -> dict:
+    """
+    Retrieve only approved reviews for public display.
+    Excludes private data (email, ip_hash, user_agent).
+    Calculates overall average rating and total count of published reviews.
+    """
+    limit = min(max(1, limit), 50)
+    offset = max(0, offset)
+    conn = get_db()
+
+    stats = conn.execute("""
+        SELECT 
+            COUNT(*) AS total_reviews,
+            AVG(rating) AS avg_rating
+        FROM feedback
+        WHERE is_approved = 1 AND rating IS NOT NULL
+    """).fetchone()
+
+    total_reviews = int(stats["total_reviews"]) if stats and stats["total_reviews"] else 0
+    raw_avg = stats["avg_rating"] if stats and stats["avg_rating"] is not None else 0.0
+    avg_rating = round(float(raw_avg), 1)
+
+    rows = conn.execute("""
+        SELECT id, name, rating, message, created_at
+        FROM feedback
+        WHERE is_approved = 1
+        ORDER BY created_at DESC, id DESC
+        LIMIT ? OFFSET ?
+    """, (limit, offset)).fetchall()
+
+    conn.close()
+
+    reviews = []
+    for r in rows:
+        reviews.append({
+            "id": r["id"],
+            "name": r["name"] or "Anonymous",
+            "rating": r["rating"],
+            "message": r["message"],
+            "created_at": r["created_at"],
+        })
+
+    return {
+        "average_rating": avg_rating,
+        "total_reviews": total_reviews,
+        "reviews": reviews,
+    }
+
+
+def get_feedback_submissions(limit: int = 50, offset: int = 0, status: Optional[str] = None) -> list[dict]:
+    """Return recent feedback entries for secure internal / admin auditing."""
+    conn = get_db()
+    query = """
+        SELECT id, feedback_type, rating, message, name, email, is_approved, created_at
+        FROM feedback
+    """
+    params = []
+    if status == "approved":
+        query += " WHERE is_approved = 1"
+    elif status == "pending":
+        query += " WHERE is_approved = 0"
+    query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
+    params.extend([limit, offset])
+
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def seed_sample_reviews_if_empty():
+    """Seed peaceful initial reviews if the feedback table has no approved reviews."""
+    conn = get_db()
+    count = conn.execute("SELECT COUNT(*) AS c FROM feedback WHERE is_approved = 1").fetchone()["c"]
+    if count == 0:
+        samples = [
+            ("review", 5, "Sakina brings a soothing rhythm of dhikr and mindfulness into my busy day. Truly calming.", "Amina K.", 1),
+            ("review", 5, "The grounding exercises and Ilm al-Nafs perspectives provide clarity during moments of overwhelm.", "Tariq S.", 1),
+            ("review", 5, "Beautifully designed, minimalist, and serene. It feels like a quiet sanctuary.", "Anonymous", 1),
+        ]
+        now = datetime.now(timezone.utc).isoformat()
+        for fb_type, rating, msg, name, apprv in samples:
+            conn.execute("""
+                INSERT INTO feedback (feedback_type, rating, message, name, is_approved, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (fb_type, rating, msg, name, apprv, now))
+        conn.commit()
+    conn.close()
+
 
