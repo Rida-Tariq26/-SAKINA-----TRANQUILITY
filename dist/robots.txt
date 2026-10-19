@@ -1,0 +1,3 @@
+# robots.txt for Sakina Web App
+User-agent: *
+Allow: /
