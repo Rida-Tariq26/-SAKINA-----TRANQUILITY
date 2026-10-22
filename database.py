@@ -79,7 +79,7 @@ def init_db() -> None:
             email         TEXT,
             ip_hash       TEXT,
             user_agent    TEXT,
-            is_approved   INTEGER NOT NULL DEFAULT 0,
+            is_approved   INTEGER NOT NULL DEFAULT 1,
             created_at    TEXT    NOT NULL
         );
 
@@ -94,7 +94,10 @@ def init_db() -> None:
     if "name" not in cols:
         conn.execute("ALTER TABLE feedback ADD COLUMN name TEXT DEFAULT 'Anonymous'")
     if "is_approved" not in cols:
-        conn.execute("ALTER TABLE feedback ADD COLUMN is_approved INTEGER NOT NULL DEFAULT 0")
+        conn.execute("ALTER TABLE feedback ADD COLUMN is_approved INTEGER NOT NULL DEFAULT 1")
+
+    # Ensure existing submitted feedback/reviews are marked active and published
+    conn.execute("UPDATE feedback SET is_approved = 1 WHERE is_approved = 0")
 
     conn.execute("CREATE INDEX IF NOT EXISTS idx_feedback_approved ON feedback(is_approved, created_at DESC)")
 
@@ -392,7 +395,7 @@ def add_feedback(
     email: Optional[str] = None,
     ip_hash: Optional[str] = None,
     user_agent: Optional[str] = None,
-    is_approved: int = 0,
+    is_approved: int = 1,
 ) -> dict:
     """Insert a visitor feedback or review record and return the created record metadata."""
     now = datetime.now(timezone.utc).isoformat()
@@ -445,7 +448,7 @@ def approve_feedback(feedback_id: int, is_approved: int = 1) -> bool:
 
 def get_public_reviews(limit: int = 10, offset: int = 0) -> dict:
     """
-    Retrieve only approved reviews for public display.
+    Retrieve reviews for public display.
     Excludes private data (email, ip_hash, user_agent).
     Calculates overall average rating and total count of published reviews.
     """
@@ -468,7 +471,7 @@ def get_public_reviews(limit: int = 10, offset: int = 0) -> dict:
     rows = conn.execute("""
         SELECT id, name, rating, message, created_at
         FROM feedback
-        WHERE is_approved = 1
+        WHERE is_approved = 1 AND rating IS NOT NULL
         ORDER BY created_at DESC, id DESC
         LIMIT ? OFFSET ?
     """, (limit, offset)).fetchall()

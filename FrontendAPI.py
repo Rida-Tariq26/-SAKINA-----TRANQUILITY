@@ -1023,9 +1023,8 @@ async def submit_feedback_endpoint(req: FeedbackCreateRequest, request: Request)
         raw_ua = request.headers.get("user-agent", "")
         cleaned_ua = raw_ua[:250] if raw_ua else None
 
-        # 9. Moderation / publication status (auto-approve configurable via env var)
-        auto_approve = os.environ.get("AUTO_APPROVE_REVIEWS", "false").lower() in ("true", "1", "yes")
-        is_approved = 1 if auto_approve else 0
+        # 9. Immediate publication status (reviews display publicly immediately without moderation)
+        is_approved = 1
 
         # 10. Persist to SQLite
         add_feedback(
@@ -1042,15 +1041,10 @@ async def submit_feedback_endpoint(req: FeedbackCreateRequest, request: Request)
         # Redacted logging (Never log message text, IP, or user email)
         logger.info("Feedback successfully submitted: type=%s, rating=%s, approved=%s", cleaned_type, cleaned_rating, is_approved)
 
-        feedback_msg = (
-            "Thank you for sharing your experience! Your review will appear publicly once approved."
-            if not is_approved
-            else "Thank you for sharing your experience!"
-        )
         return {
             "status": "success",
-            "message": feedback_msg,
-            "is_approved": bool(is_approved),
+            "message": "Thank you for sharing your experience!",
+            "is_approved": True,
         }
 
     except HTTPException:
@@ -1067,9 +1061,9 @@ async def submit_feedback_endpoint(req: FeedbackCreateRequest, request: Request)
 @app.get("/api/feedback/public")
 async def get_public_reviews_endpoint(limit: int = 10, offset: int = 0):
     """
-    Public endpoint to retrieve approved reviews for the landing page.
-    Excludes all sensitive/private information (emails, IP hashes, user agents, unapproved submissions).
-    Returns average rating, total count of approved reviews, and recent approved reviews.
+    Public endpoint to retrieve reviews for the landing page.
+    Excludes all sensitive/private information (emails, IP hashes, user agents).
+    Returns average rating, total count of published reviews, and recent reviews.
     """
     try:
         data = get_public_reviews(limit=limit, offset=offset)

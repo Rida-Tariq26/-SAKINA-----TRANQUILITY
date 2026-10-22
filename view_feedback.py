@@ -57,9 +57,9 @@ def main():
     print("        Sakina Administrative Feedback & Review Dashboard        ")
     print("=" * 65)
     print(f" Total Submissions     : {total_count}")
-    print(f" Approved (Public)     : {approved_count}")
-    print(f" Pending Moderation    : {pending_count}")
-    print(f" Approved Avg Rating   : {avg_rating} / 5")
+    print(f" Public Reviews        : {approved_count}")
+    print(f" Hidden Submissions    : {pending_count}")
+    print(f" Public Avg Rating     : {avg_rating} / 5")
     print(" Breakdown by Type     :")
     for row in type_counts:
         print(f"   - {row['feedback_type'].capitalize():14}: {row['c']}")
@@ -91,15 +91,15 @@ def main():
         rating_display = f"{r['rating']}/5" if r['rating'] else "Not rated"
         author_display = r['name'] if r['name'] else "Anonymous"
         email_display = r['email'] if r['email'] else "(None)"
-        mod_status = "[APPROVED - PUBLIC]" if r['is_approved'] == 1 else "[PENDING APPROVAL]"
+        mod_status = "[PUBLIC]" if r['is_approved'] == 1 else "[HIDDEN]"
         
         print(f" [ID #{r['id']}] {r['created_at']} | {mod_status}")
         print(f" Type: {r['feedback_type'].upper()} | Rating: {rating_display} | Author: {author_display}")
         print(f" Email: {email_display}")
         print(f" Message:\n   {r['message']}")
         print("-" * 65)
-    print("\nTip: To publish a review, run: python view_feedback.py --approve <ID>")
-    print("Tip: To unpublish/reject, run: python view_feedback.py --reject <ID>\n")
+    print("\nTip: To make a review public, run: python view_feedback.py --approve <ID>")
+    print("Tip: To hide/reject a review, run: python view_feedback.py --reject <ID>\n")
 
 if __name__ == "__main__":
     main()

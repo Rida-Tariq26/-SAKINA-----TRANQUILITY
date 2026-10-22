@@ -313,10 +313,10 @@ class TestFeedbackAPIEndpoints:
 
 
 class TestPublicReviews:
-    """Comprehensive test suite for the public reviews system and moderation."""
+    """Comprehensive test suite for the public reviews system and immediate publishing."""
 
     @pytest.mark.asyncio
-    async def test_review_submission_stores_correctly_and_held_for_moderation(self):
+    async def test_review_submission_is_published_immediately_without_moderation(self):
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             payload = {
@@ -329,23 +329,37 @@ class TestPublicReviews:
             assert res.status_code == 200
             data = res.json()
             assert data["status"] == "success"
-            assert data["is_approved"] is False
+            assert data["is_approved"] is True
+            assert "Thank you" in data["message"]
 
-            # Verify held for moderation (not in public reviews)
+            # Verify displayed publicly immediately without manual approval
             pub_res = await client.get("/api/reviews")
             assert pub_res.status_code == 200
             pub_data = pub_res.json()
-            assert pub_data["total_reviews"] == 0
-            assert len(pub_data["reviews"]) == 0
+            assert pub_data["total_reviews"] == 1
+            assert pub_data["average_rating"] == 5.0
+            assert len(pub_data["reviews"]) == 1
+
+            review_item = pub_data["reviews"][0]
+            assert review_item["name"] == "Mariam E."
+            assert review_item["rating"] == 5
+            assert "peaceful reflection" in review_item["message"]
+            assert "created_at" in review_item
+
+            # Strict privacy check: Private fields MUST NOT exist in public response
+            assert "email" not in review_item
+            assert "ip_hash" not in review_item
+            assert "user_agent" not in review_item
+            assert "is_approved" not in review_item
 
     @pytest.mark.asyncio
-    async def test_admin_approves_review_and_it_becomes_public(self):
+    async def test_admin_can_hide_and_reapprove_review(self):
         test_admin_key = "secret_admin_key_test"
         os.environ["SAKINA_ADMIN_KEY"] = test_admin_key
         transport = ASGITransport(app=app)
 
         async with AsyncClient(transport=transport, base_url="http://test") as client:
-            # 1. Visitor submits review
+            # 1. Visitor submits review (published immediately)
             payload = {
                 "message": "The dhikr mindfulness feature helps me stay grounded in gratitude.",
                 "rating": 5,
@@ -353,6 +367,11 @@ class TestPublicReviews:
             }
             sub_res = await client.post("/api/feedback", json=payload)
             assert sub_res.status_code == 200
+
+            # Public visitor can see it immediately
+            pub_res = await client.get("/api/reviews")
+            assert pub_res.status_code == 200
+            assert pub_res.json()["total_reviews"] == 1
 
             # Inspect admin feedback to get review ID
             admin_list = await client.get(
@@ -364,9 +383,23 @@ class TestPublicReviews:
             assert len(records) == 1
             review_id = records[0]["id"]
             assert records[0]["name"] == "Zaid K."
-            assert records[0]["is_approved"] == 0
+            assert records[0]["is_approved"] == 1
 
-            # 2. Admin approves review
+            # 2. Admin hides/rejects inappropriate review
+            hide_res = await client.post(
+                f"/api/admin/feedback/{review_id}/approve",
+                headers={"X-Admin-Key": test_admin_key},
+                json={"is_approved": False},
+            )
+            assert hide_res.status_code == 200
+            assert "rejected" in hide_res.json()["message"]
+
+            # Verify it is no longer visible publicly
+            pub_res_hidden = await client.get("/api/reviews")
+            assert pub_res_hidden.json()["total_reviews"] == 0
+            assert len(pub_res_hidden.json()["reviews"]) == 0
+
+            # 3. Admin re-approves review
             appr_res = await client.post(
                 f"/api/admin/feedback/{review_id}/approve",
                 headers={"X-Admin-Key": test_admin_key},
@@ -375,15 +408,15 @@ class TestPublicReviews:
             assert appr_res.status_code == 200
             assert "approved" in appr_res.json()["message"]
 
-            # 3. Public visitor retrieves reviews
-            pub_res = await client.get("/api/reviews")
-            assert pub_res.status_code == 200
-            pub_data = pub_res.json()
-            assert pub_data["total_reviews"] == 1
-            assert pub_data["average_rating"] == 5.0
-            assert len(pub_data["reviews"]) == 1
+            # 4. Public visitor retrieves reviews again
+            pub_res2 = await client.get("/api/reviews")
+            assert pub_res2.status_code == 200
+            pub_data2 = pub_res2.json()
+            assert pub_data2["total_reviews"] == 1
+            assert pub_data2["average_rating"] == 5.0
+            assert len(pub_data2["reviews"]) == 1
 
-            review_item = pub_data["reviews"][0]
+            review_item = pub_data2["reviews"][0]
             assert review_item["name"] == "Zaid K."
             assert review_item["rating"] == 5
             assert "dhikr mindfulness" in review_item["message"]
@@ -402,17 +435,17 @@ class TestPublicReviews:
         transport = ASGITransport(app=app)
 
         async with AsyncClient(transport=transport, base_url="http://test") as client:
-            # Add 2 approved reviews (5 and 4 stars)
+            # Add 2 published reviews (5 and 4 stars)
             res1 = add_feedback(feedback_type="review", message="Five star tranquil review.", rating=5, name="User A", is_approved=1)
             res2 = add_feedback(feedback_type="review", message="Four star good review.", rating=4, name="User B", is_approved=1)
-            # Add 1 unapproved review (1 star)
-            res3 = add_feedback(feedback_type="review", message="Pending review not yet moderated.", rating=1, name="User C", is_approved=0)
+            # Add 1 hidden/rejected review (1 star)
+            res3 = add_feedback(feedback_type="review", message="Spam or rejected review.", rating=1, name="User C", is_approved=0)
 
             pub_res = await client.get("/api/reviews")
             assert pub_res.status_code == 200
             pub_data = pub_res.json()
 
-            # Only 2 approved reviews
+            # Only 2 published reviews counted
             assert pub_data["total_reviews"] == 2
             # Average of 5 and 4 = 4.5
             assert pub_data["average_rating"] == 4.5
@@ -437,18 +470,69 @@ class TestPublicReviews:
             )
             assert res.status_code == 200
 
-            # Approve it directly in DB
-            submissions = get_feedback_submissions(limit=5)
-            assert len(submissions) == 1
-            assert submissions[0]["name"] == "Anonymous"
-            from database import approve_feedback
-            approve_feedback(submissions[0]["id"], is_approved=1)
-
-            # Public check
+            # Public check - immediately visible with name Anonymous
             pub_res = await client.get("/api/reviews")
             assert pub_res.status_code == 200
             pub_data = pub_res.json()
+            assert pub_data["total_reviews"] == 1
             assert pub_data["reviews"][0]["name"] == "Anonymous"
+
+    @pytest.mark.asyncio
+    async def test_consecutive_reviews_update_total_count_and_average_rating_immediately(self):
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            # First review: 5 stars
+            res1 = await client.post(
+                "/api/feedback",
+                json={
+                    "feedback_type": "review",
+                    "message": "First review with highest rating.",
+                    "rating": 5,
+                    "name": "First User",
+                },
+            )
+            assert res1.status_code == 200
+
+            check1 = await client.get("/api/reviews")
+            assert check1.json()["total_reviews"] == 1
+            assert check1.json()["average_rating"] == 5.0
+            assert len(check1.json()["reviews"]) == 1
+
+            # Second review: 3 stars
+            res2 = await client.post(
+                "/api/feedback",
+                json={
+                    "feedback_type": "review",
+                    "message": "Second review with moderate rating.",
+                    "rating": 3,
+                    "name": "Second User",
+                },
+            )
+            assert res2.status_code == 200
+
+            check2 = await client.get("/api/reviews")
+            assert check2.json()["total_reviews"] == 2
+            assert check2.json()["average_rating"] == 4.0
+            assert len(check2.json()["reviews"]) == 2
+            assert check2.json()["reviews"][0]["name"] == "Second User"  # Latest first
+
+            # Third review: 4 stars
+            res3 = await client.post(
+                "/api/feedback",
+                json={
+                    "feedback_type": "review",
+                    "message": "Third review with good rating.",
+                    "rating": 4,
+                    "name": "Third User",
+                },
+            )
+            assert res3.status_code == 200
+
+            check3 = await client.get("/api/reviews")
+            assert check3.json()["total_reviews"] == 3
+            # (5 + 3 + 4) / 3 = 4.0
+            assert check3.json()["average_rating"] == 4.0
+            assert len(check3.json()["reviews"]) == 3
 
     @pytest.mark.asyncio
     async def test_review_requires_rating_between_1_and_5(self):

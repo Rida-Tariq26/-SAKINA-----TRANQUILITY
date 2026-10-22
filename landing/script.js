@@ -158,12 +158,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const total = Number(data.total_reviews || 0);
 
       if (summaryAvgScore) summaryAvgScore.textContent = avg;
-      if (summaryStars) summaryStars.innerHTML = buildStarsSvg(Number(avg));
+      if (summaryStars) {
+        summaryStars.innerHTML = buildStarsSvg(Number(avg));
+        summaryStars.setAttribute('aria-label', `Average ${avg} out of 5 stars`);
+      }
       if (summaryCountText) {
         if (total === 0) {
           summaryCountText.textContent = 'No published reviews yet';
         } else {
-          summaryCountText.textContent = `Based on ${total} published community review${total === 1 ? '' : 's'}`;
+          summaryCountText.textContent = `Based on ${total} community review${total === 1 ? '' : 's'}`;
         }
       }
 
@@ -424,10 +427,8 @@ document.addEventListener('DOMContentLoaded', () => {
             reviewName.placeholder = 'Display name (optional)';
           }
 
-          // If auto-approved, refresh reviews display immediately
-          if (resData && resData.is_approved) {
-            fetchAndRenderReviews();
-          }
+          // Refresh reviews display, average rating score, and total count immediately
+          fetchAndRenderReviews();
         } else {
           // Failure: Preserve user inputs
           let errorDetail = 'We were unable to submit your review right now. Please try again.';
