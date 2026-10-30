@@ -1122,15 +1122,108 @@ async def get_admin_feedback_endpoint(
 
 
 # ─────────────────────────────────────────────
-# SERVE REACT FRONTEND (Production Build)
+# SERVE REACT FRONTEND (Production Build) & SEO ROUTES
 # ─────────────────────────────────────────────
 build_path = os.path.join(os.path.dirname(__file__), "dist")
+public_path = os.path.join(os.path.dirname(__file__), "public")
+
+
+def _get_static_file(filename: str) -> Optional[str]:
+    """Helper to locate a static asset in dist/ (production) or public/ (development)."""
+    dist_file = os.path.join(build_path, filename)
+    if os.path.isfile(dist_file):
+        return dist_file
+    pub_file = os.path.join(public_path, filename)
+    if os.path.isfile(pub_file):
+        return pub_file
+    return None
+
+
+# Explicit SEO and crawler routes (registered BEFORE SPA catch-all)
+@app.get("/robots.txt", include_in_schema=False)
+async def serve_robots():
+    file_path = _get_static_file("robots.txt")
+    if file_path:
+        return FileResponse(file_path, media_type="text/plain")
+    raise HTTPException(status_code=404, detail="robots.txt not found")
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+async def serve_sitemap():
+    file_path = _get_static_file("sitemap.xml")
+    if file_path:
+        return FileResponse(file_path, media_type="application/xml")
+    raise HTTPException(status_code=404, detail="sitemap.xml not found")
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def serve_favicon_ico():
+    file_path = _get_static_file("favicon.ico")
+    if file_path:
+        return FileResponse(file_path, media_type="image/x-icon")
+    raise HTTPException(status_code=404, detail="favicon.ico not found")
+
+
+@app.get("/favicon.svg", include_in_schema=False)
+async def serve_favicon_svg():
+    file_path = _get_static_file("favicon.svg")
+    if file_path:
+        return FileResponse(file_path, media_type="image/svg+xml")
+    raise HTTPException(status_code=404, detail="favicon.svg not found")
+
+
+@app.get("/og-image.png", include_in_schema=False)
+async def serve_og_image():
+    file_path = _get_static_file("og-image.png")
+    if file_path:
+        return FileResponse(file_path, media_type="image/png")
+    raise HTTPException(status_code=404, detail="og-image.png not found")
+
+
+@app.get("/apple-touch-icon.png", include_in_schema=False)
+async def serve_apple_touch_icon():
+    file_path = _get_static_file("apple-touch-icon.png")
+    if file_path:
+        return FileResponse(file_path, media_type="image/png")
+    raise HTTPException(status_code=404, detail="apple-touch-icon.png not found")
+
+
+@app.get("/site.webmanifest", include_in_schema=False)
+async def serve_site_manifest():
+    file_path = _get_static_file("site.webmanifest")
+    if file_path:
+        return FileResponse(file_path, media_type="application/manifest+json")
+    raise HTTPException(status_code=404, detail="site.webmanifest not found")
+
+
+# Mount /assets directory if production dist exists
+assets_path = os.path.join(build_path, "assets")
+if os.path.exists(assets_path):
+    app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
+
 
 if os.path.exists(build_path):
-    app.mount("/", StaticFiles(directory=build_path, html=True), name="static")
-    @app.get("/{full_path:path}")
+    @app.get("/", include_in_schema=False)
+    async def serve_root():
+        index_file = os.path.join(build_path, "index.html")
+        if os.path.exists(index_file):
+            return FileResponse(index_file, media_type="text/html")
+        raise HTTPException(status_code=404, detail="index.html not found")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
     async def serve_spa(full_path: str):
-        return FileResponse(os.path.join(build_path, "index.html"))
+        # Do not catch unhandled /api/ routes with HTML
+        if full_path.startswith("api/") or full_path == "api":
+            raise HTTPException(status_code=404, detail="API endpoint not found")
+        # Check if direct file exists in dist/ or public/
+        direct_file = _get_static_file(full_path)
+        if direct_file:
+            return FileResponse(direct_file)
+        # SPA fallback for client-side routes
+        index_file = os.path.join(build_path, "index.html")
+        if os.path.exists(index_file):
+            return FileResponse(index_file, media_type="text/html")
+        raise HTTPException(status_code=404, detail="Frontend build not found.")
 else:
     @app.get("/")
     def read_root():

@@ -1,3 +1,5 @@
-# robots.txt for Sakina Web App
 User-agent: *
 Allow: /
+Disallow: /api/
+
+Sitemap: https://sakina-tranquility.onrender.com/sitemap.xml
