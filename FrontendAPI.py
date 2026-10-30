@@ -1124,18 +1124,36 @@ async def get_admin_feedback_endpoint(
 # ─────────────────────────────────────────────
 # SERVE REACT FRONTEND (Production Build) & SEO ROUTES
 # ─────────────────────────────────────────────
-build_path = os.path.join(os.path.dirname(__file__), "dist")
-public_path = os.path.join(os.path.dirname(__file__), "public")
+root_path = os.path.dirname(os.path.abspath(__file__))
+build_path = os.path.join(root_path, "dist")
+public_path = os.path.join(root_path, "public")
+
+ALLOWED_ROOT_FILES = {"robots.txt", "sitemap.xml"}
 
 
 def _get_static_file(filename: str) -> Optional[str]:
-    """Helper to locate a static asset in dist/ (production) or public/ (development)."""
+    """Helper to locate a static asset across project root, dist/ (production), or public/ (development)."""
+    safe_name = os.path.basename(filename)
+
+    # 1. Project root directory check for designated SEO and site verification files
+    if filename == safe_name and (
+        safe_name in ALLOWED_ROOT_FILES
+        or (safe_name.startswith("google") and safe_name.endswith(".html"))
+    ):
+        root_file = os.path.join(root_path, safe_name)
+        if os.path.isfile(root_file):
+            return root_file
+
+    # 2. Production build directory
     dist_file = os.path.join(build_path, filename)
     if os.path.isfile(dist_file):
         return dist_file
+
+    # 3. Development / source public directory
     pub_file = os.path.join(public_path, filename)
     if os.path.isfile(pub_file):
         return pub_file
+
     return None
 
 

@@ -1,5 +1,22 @@
+# robots.txt for Sakina (https://sakina-tranquility.onrender.com)
+# Allows Googlebot and standard web crawlers to index publicly accessible pages and assets.
+
 User-agent: *
 Allow: /
+Allow: /assets/
 Disallow: /api/
+Disallow: /docs
+Disallow: /redoc
+Disallow: /openapi.json
 
+# Explicit rules for Googlebot
+User-agent: Googlebot
+Allow: /
+Allow: /assets/
+Disallow: /api/
+Disallow: /docs
+Disallow: /redoc
+Disallow: /openapi.json
+
+# XML Sitemap Location
 Sitemap: https://sakina-tranquility.onrender.com/sitemap.xml
