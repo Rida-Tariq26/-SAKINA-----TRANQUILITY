@@ -1279,6 +1279,17 @@ const AppPage = ({ isDark, onToggleTheme, onNavigate, onLogout }) => {
   ];
 
   useEffect(() => {
+    const titles = {
+      chat: "AI Mental Wellness Companion Chat | Sakina",
+      dhikr: "Islamic Mindfulness & Dhikr Practice | Sakina AI",
+      mood: "Free AI Mood Tracker & Trends | Sakina AI",
+      journal: "AI Journaling Companion (Muhasabah) | Sakina AI",
+      settings: "Settings & BYOK Privacy Controls | Sakina AI",
+    };
+    document.title = titles[tab] || "Sakina | Free AI Mental Wellness Companion";
+  }, [tab]);
+
+  useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape" && isDrawerOpen) {
         setIsDrawerOpen(false);
@@ -1591,6 +1602,18 @@ function AppContent() {
     }
     setPage(targetPage);
   };
+
+  useEffect(() => {
+    if (page === "landing") {
+      document.title = "Sakina | Free AI Mental Wellness Companion & Islamic Psychology";
+    } else if (page === "login") {
+      document.title = "Sign In | Sakina — Private AI Wellness Companion";
+    } else if (page === "privacy") {
+      document.title = "Privacy Policy & Data Sovereignty | Sakina AI";
+    } else if (page === "terms") {
+      document.title = "Terms of Service & Wellness Notice | Sakina AI";
+    }
+  }, [page]);
 
   return (
     <>

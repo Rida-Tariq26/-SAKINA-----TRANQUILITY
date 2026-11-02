@@ -1,6 +1,7 @@
 {
-  "name": "Sakina - Islamic Psychology & Emotional Wellbeing",
+  "name": "Sakina - Free AI Mental Wellness & Islamic Psychology Companion",
   "short_name": "Sakina",
+  "description": "Free, private AI mental wellness companion blending Islamic psychology with evidence-based cognitive science for spiritual tranquility.",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
@@ -15,5 +16,6 @@
   ],
   "theme_color": "#07111C",
   "background_color": "#07111C",
-  "display": "standalone"
+  "display": "standalone",
+  "categories": ["health", "lifestyle", "wellness"]
 }
