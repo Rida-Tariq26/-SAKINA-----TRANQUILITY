@@ -117,11 +117,14 @@ export async function apiFetch(url, options = {}, timeoutMs = 25000) {
     headers.set("X-Gemini-Model", model);
   }
 
-  // Attempt to attach user id if stored in localStorage or session
+  // Attach cryptographic session token or isolated guest id
   try {
     const rawUser = localStorage.getItem("sakina_user");
     if (rawUser) {
       const parsed = JSON.parse(rawUser);
+      if (parsed?.session_token) {
+        headers.set("Authorization", `Bearer ${parsed.session_token}`);
+      }
       if (parsed?.sub) {
         headers.set("X-User-Id", parsed.sub);
       }
@@ -131,6 +134,7 @@ export async function apiFetch(url, options = {}, timeoutMs = 25000) {
         guestId = "guest_" + (typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15));
         localStorage.setItem("sakina_guest_id", guestId);
       }
+      headers.set("X-Guest-Id", guestId);
       headers.set("X-User-Id", guestId);
     }
   } catch {

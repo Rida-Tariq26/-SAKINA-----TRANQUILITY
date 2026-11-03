@@ -96,8 +96,12 @@ export default function SettingsTab({ isDark, onNavigate, onLogout }) {
     if (!user?.sub) return;
     setExportLoad(true);
     try {
+      const authHeaders = { "X-User-Id": user.sub };
+      if (user.session_token) {
+        authHeaders["Authorization"] = `Bearer ${user.session_token}`;
+      }
       const res = await fetch("/api/user/data/export", {
-        headers: { "X-User-Id": user.sub },
+        headers: authHeaders,
       });
       if (!res.ok) throw new Error("Export failed");
       const blob = await res.blob();
@@ -123,9 +127,13 @@ export default function SettingsTab({ isDark, onNavigate, onLogout }) {
     setDelLoading(true);
     setDeleteError("");
     try {
+      const authHeaders = { "X-User-Id": user.sub };
+      if (user.session_token) {
+        authHeaders["Authorization"] = `Bearer ${user.session_token}`;
+      }
       const res = await fetch("/api/user/data", {
         method:  "DELETE",
-        headers: { "X-User-Id": user.sub },
+        headers: authHeaders,
       });
       if (!res.ok) throw new Error("Deletion failed");
       logout();

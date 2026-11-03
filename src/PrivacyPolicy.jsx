@@ -181,10 +181,10 @@ export default function PrivacyPolicy({ isDark, onBack }) {
 
       <Section t={t} title="5. Data Retention">
         <P>
-          Your mood log data is retained for as long as your account is active. You may delete
+          Your mood log and journal data is retained for as long as your account is active. You may delete
           your account and all associated data at any time via <em>Settings → Delete Account & Data</em>.
-          Upon deletion, your personal data is permanently erased and your account record is
-          anonymised within 30 days.
+          Upon deletion, your personal data, mood logs, private reflections, and unique user identifiers
+          are permanently erased from our databases immediately.
         </P>
       </Section>
 
@@ -221,12 +221,18 @@ export default function PrivacyPolicy({ isDark, onBack }) {
         </P>
       </Section>
 
-      <Section t={t} title="8. Security">
+      <Section t={t} title="8. Security & Cryptographic Protection">
         <P>
-          We implement industry-standard security practices: Google ID tokens are verified
-          server-side on every login, data is stored in a protected SQLite database, and
-          all traffic is served over HTTPS in production. No system is completely immune to
-          threats; we encourage you not to share your login credentials with others.
+          We implement rigorous, multi-layered security practices to safeguard your well-being and privacy:
+        </P>
+        <Ul t={t} items={[
+          "Cryptographic Authentication: Google OAuth tokens are verified server-side, issuing HMAC-signed session tokens and secure cookies for all subsequent operations to prevent unauthorized access.",
+          "Field-Level Encryption at Rest: Sensitive journal reflections and mood notes are encrypted using industry-standard AES/Fernet encryption before being persisted to the database.",
+          "Transport Security: All traffic between your browser and our servers is strictly transmitted over HTTPS in production.",
+          "Privacy-Preserving Rate Limiting: Visitor IP addresses for review submissions are hashed with private, dynamic salts, preventing IP tracking or de-anonymization.",
+        ]} />
+        <P>
+          No system is completely immune to threats, but our defense-in-depth architecture ensures your innermost thoughts remain private and secure.
         </P>
       </Section>
 
