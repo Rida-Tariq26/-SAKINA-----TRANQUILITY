@@ -13,6 +13,7 @@ from google.adk.sessions import InMemorySessionService
 from google.genai import types
 from system_prompt import SYSTEM_PROMPT
 from guardrails import evaluate_guardrails, get_user_country, CrisisTier
+from model_config import get_primary_model, get_auxiliary_model
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
@@ -187,7 +188,7 @@ async def lifespan(app: FastAPI):
 
         sakina_agent = Agent(
             name="Sakina",
-            model=os.environ.get("GEMINI_MODEL", "gemini-2.0-flash"),
+            model=get_primary_model(),
             instruction=SYSTEM_PROMPT,
             tools=agent_tools,
         )

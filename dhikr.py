@@ -8,6 +8,7 @@ from google.adk.agents import Agent
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
+from model_config import get_primary_model, get_auxiliary_model
 
 load_dotenv()
 
@@ -679,7 +680,7 @@ async def main():
 
     commentary_agent = Agent(
         name="SakinaDhikrGuide",
-        model=os.environ.get("GEMINI_MODEL", "gemini-2.0-flash"),
+        model=get_auxiliary_model(),
         instruction=system_prompt,
     )
 

@@ -7,31 +7,25 @@
 const STORAGE_KEY_API_KEY = "sakina_gemini_api_key";
 const STORAGE_KEY_MODEL = "sakina_gemini_model";
 
-export const DEFAULT_MODEL = "gemini-2.0-flash";
+export const DEFAULT_MODEL = "gemini-2.5-flash";
 
 export const SUPPORTED_MODELS = [
   {
-    id: "gemini-2.0-flash",
-    name: "Gemini 2.0 Flash (Recommended)",
-    description: "Google AI Studio flagship — high speed, exceptional emotional synthesis",
+    id: "gemini-2.5-flash",
+    name: "Gemini 2.5 Flash (Recommended)",
+    description: "Fast, highly reliable, and intelligent for empathetic conversational guidance",
     recommended: true,
   },
   {
-    id: "gemini-1.5-flash",
-    name: "Gemini 1.5 Flash",
-    description: "Fast, versatile, and highly reliable for everyday reflections",
+    id: "gemini-3.5-flash-lite",
+    name: "Gemini 3.5 Flash-Lite (Fast)",
+    description: "Ultra-fast, lightweight model ideal for quick reflections and classification",
     recommended: false,
   },
   {
-    id: "gemini-1.5-pro",
-    name: "Gemini 1.5 Pro",
-    description: "Deep psychological & spiritual reasoning and nuanced reflection",
-    recommended: false,
-  },
-  {
-    id: "gemini-2.5-flash",
-    name: "Gemini 2.5 Flash (Preview)",
-    description: "Latest generation preview model for supported developer keys",
+    id: "gemini-3.5-flash",
+    name: "Gemini 3.5 Flash",
+    description: "Next-generation multimodal reasoning and nuanced emotional depth",
     recommended: false,
   },
 ];

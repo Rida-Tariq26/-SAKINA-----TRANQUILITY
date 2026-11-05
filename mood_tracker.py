@@ -11,6 +11,7 @@ from google.adk.agents import Agent
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
+from model_config import get_auxiliary_model
 
 from database import (
     add_mood_log as db_add_mood_log,
@@ -353,7 +354,7 @@ async def main():
 
     commentary_agent = Agent(
         name="SakinaMoodGuide",
-        model=os.environ.get("GEMINI_MODEL", "gemini-2.0-flash"),
+        model=get_auxiliary_model(),
         instruction=TREND_COMMENTARY_PROMPT,
     )
     runner = Runner(agent=commentary_agent, app_name=APP_NAME, session_service=session_service)

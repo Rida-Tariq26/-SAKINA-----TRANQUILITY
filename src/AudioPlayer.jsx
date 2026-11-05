@@ -36,9 +36,9 @@ export function parseSpotifyUrl(input) {
 // Curated peaceful presets for immediate peaceful ambiance
 const SPOTIFY_PRESETS = [
   {
-    title: "Surah Ar-Rahman (Mishary Alafasy)",
+    title: "Surah Ar-Rahman (Al Sheikh Yasser Al-dosari)",
     subtitle: "Heartfelt Recitation",
-    url: "https://open.spotify.com/track/4Pj781V1h4r50w1x2zK36p",
+    url: "https://open.spotify.com/track/5BSTgtxKKHLQ1zPO1kOvkN",
     type: "track",
   },
   {
@@ -56,7 +56,7 @@ const SPOTIFY_PRESETS = [
   {
     title: "Spiritual Solitude & Gentle Oud",
     subtitle: "Contemplative Acoustics",
-    url: "https://open.spotify.com/playlist/37i9dQZF1DX3O4uV0kGj9G",
+    url: "https://open.spotify.com/playlist/6q7ofexPqWKonfQVUfM3Y7",
     type: "playlist",
   },
 ];

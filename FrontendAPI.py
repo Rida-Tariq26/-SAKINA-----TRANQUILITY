@@ -63,6 +63,13 @@ from dhikr import (
     get_ai_commentary,
 )
 from mood_tracker import log_and_synthesize, get_dashboard, analyze_trends, TREND_COMMENTARY_PROMPT
+from model_config import (
+    DEFAULT_PRIMARY_MODEL,
+    DEFAULT_AUXILIARY_MODEL,
+    get_primary_model,
+    get_auxiliary_model,
+    get_candidate_models,
+)
 
 load_dotenv()
 
@@ -70,7 +77,7 @@ logger = logging.getLogger("sakina.api")
 
 APP_NAME = "Sakina"
 DEFAULT_USER_ID = "default_user"
-DEFAULT_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
+DEFAULT_MODEL = get_primary_model()
 
 # Global references for shared services and MCP tools
 session_service = InMemorySessionService()
@@ -216,9 +223,9 @@ def get_effective_api_key(header_key: Optional[str] = None) -> Optional[str]:
 
 def create_llm_instance(model_name: str, api_key: Optional[str] = None):
     """Creates a model instance targeting the specific API key and active model."""
-    target_model = model_name if model_name and model_name.strip() else DEFAULT_MODEL
-    # Sanitize any legacy unsupported model identifiers
-    if "gemini-2.5" in target_model:
+    target_model = model_name.strip() if model_name and model_name.strip() else DEFAULT_MODEL
+    # Sanitize any legacy retired or deprecated model identifiers
+    if any(retired in target_model for retired in ["gemini-1.5", "gemini-2.0", "gemini-2.5-flash-lite"]):
         target_model = DEFAULT_MODEL
     try:
         cls = LLMRegistry.resolve(target_model)
@@ -261,7 +268,8 @@ def create_mood_runner(
     user_id: str = DEFAULT_USER_ID,
 ) -> Runner:
     """Creates a scoped Mood Runner configured with the target API key & user-isolated MCP tools."""
-    llm = create_llm_instance(model_name or DEFAULT_MODEL, api_key)
+    target_model = model_name or DEFAULT_AUXILIARY_MODEL
+    llm = create_llm_instance(target_model, api_key)
     tools = get_scoped_mcp_tools(user_id)
     agent = Agent(
         name="SakinaMood",
@@ -483,11 +491,8 @@ async def verify_api_key_endpoint(
             detail="No API key provided to verify.",
         )
 
-    # Candidate models to try in case the key is tied to a specific API namespace/endpoint
-    candidate_models = [primary_model]
-    for fallback in ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash", "gemini-1.5-pro"]:
-        if fallback not in candidate_models:
-            candidate_models.append(fallback)
+    # Candidate free-tier models to test in order of preference
+    candidate_models = get_candidate_models(primary_model)
 
     last_err = None
     try:
@@ -523,12 +528,14 @@ async def verify_api_key_endpoint(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="API key is valid, but current quota limit (429) was reached. Please wait a few minutes.",
                 )
-            # If 404 / NOT_FOUND, continue trying candidate models
+            # If 503 UNAVAILABLE or 404 NOT_FOUND, try next candidate model
             continue
 
     err_msg = str(last_err) if last_err else "Unknown error"
     if "404" in err_msg or "NOT_FOUND" in err_msg:
-        detail = f"Could not find a supported Gemini model for this API key. Tested: {', '.join(candidate_models)}."
+        detail = f"Could not find a supported free-tier Gemini model for this API key. Tested: {', '.join(candidate_models)}."
+    elif "503" in err_msg or "UNAVAILABLE" in err_msg:
+        detail = "Gemini models are currently experiencing high demand. Please try again in a few moments."
     else:
         detail = f"Verification failed: {err_msg}"
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
@@ -742,6 +749,11 @@ async def post_chat_endpoint(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 detail="Your Gemini API key has exceeded its rate or daily quota limit. Please check your key in Settings or wait a moment.",
             )
+        elif "503" in err_str or "UNAVAILABLE" in err_str:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="The Gemini model is temporarily experiencing high demand. Please try again in a few moments.",
+            )
         elif "API_KEY_INVALID" in err_str or "400" in err_str or "401" in err_str or "403" in err_str or "not valid" in err_str:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -768,7 +780,7 @@ async def post_dhikr_endpoint(
     resolver_session = f"resolver_{user_id}"
 
     effective_key = get_effective_api_key(x_gemini_api_key)
-    runner = create_chat_runner(api_key=effective_key, model_name=x_gemini_model, user_id=user_id) if effective_key else None
+    runner = create_chat_runner(api_key=effective_key, model_name=x_gemini_model or DEFAULT_AUXILIARY_MODEL, user_id=user_id) if effective_key else None
 
     is_islamic = req.mode not in ("secular", "clinical_scientific")
 

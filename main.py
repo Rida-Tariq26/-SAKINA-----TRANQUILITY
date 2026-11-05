@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from model_config import get_primary_model
 # Replace this import with the specific class from your 'google-adk' if different
 from google import genai 
 
@@ -14,7 +15,7 @@ def main():
     
     # Generate a simple response
     response = client.models.generate_content(
-        model='gemini-2.0-flash',
+        model=get_primary_model(),
         contents='Hello! Confirming that our connection is successful.',
     )
     
