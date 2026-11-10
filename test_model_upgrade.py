@@ -16,9 +16,11 @@ from unittest.mock import patch
 from model_config import (
     DEFAULT_PRIMARY_MODEL,
     DEFAULT_AUXILIARY_MODEL,
+    DEFAULT_FALLBACK_MODEL,
     FREE_TIER_CANDIDATE_MODELS,
     get_primary_model,
     get_auxiliary_model,
+    get_fallback_model,
     get_candidate_models,
 )
 from FrontendAPI import (
@@ -32,39 +34,51 @@ from FrontendAPI import (
 class TestModelConfiguration:
     def test_default_models_are_active_free_tier(self):
         """Ensure default models are the verified, active free-tier models."""
-        assert get_primary_model() == "gemini-2.5-flash"
+        assert get_primary_model() == "gemini-3.5-flash"
         assert get_auxiliary_model() == "gemini-3.5-flash-lite"
+        assert get_fallback_model() == "gemini-3.5-flash-lite"
 
     def test_no_obsolete_models_in_candidates(self):
-        """Ensure no retired models (1.5, 2.0, 2.5-flash-lite) are in candidate list."""
+        """Ensure no retired models (1.5, 2.0, 2.5) are in candidate list."""
         candidates = get_candidate_models()
         for c in candidates:
             assert "gemini-1.5" not in c
             assert "gemini-2.0" not in c
-            assert c != "gemini-2.5-flash-lite"
+            assert "gemini-2.5" not in c
 
     def test_environment_variable_override_primary(self):
         """Ensure GEMINI_MODEL env var dynamically overrides primary model."""
-        with patch.dict(os.environ, {"GEMINI_MODEL": "gemini-3.5-flash"}):
-            assert get_primary_model() == "gemini-3.5-flash"
+        with patch.dict(os.environ, {"GEMINI_MODEL": "gemini-3.5-flash-lite"}):
+            assert get_primary_model() == "gemini-3.5-flash-lite"
             candidates = get_candidate_models()
-            assert candidates[0] == "gemini-3.5-flash"
+            assert candidates[0] == "gemini-3.5-flash-lite"
 
     def test_environment_variable_override_auxiliary(self):
         """Ensure GEMINI_AUXILIARY_MODEL env var dynamically overrides auxiliary model."""
-        with patch.dict(os.environ, {"GEMINI_AUXILIARY_MODEL": "gemini-3.5-flash-lite"}):
-            assert get_auxiliary_model() == "gemini-3.5-flash-lite"
+        with patch.dict(os.environ, {"GEMINI_AUXILIARY_MODEL": "gemini-3.5-flash"}):
+            assert get_auxiliary_model() == "gemini-3.5-flash"
+
+    def test_environment_variable_override_fallback(self):
+        """Ensure GEMINI_FALLBACK_MODEL env var dynamically overrides fallback model."""
+        with patch.dict(os.environ, {"GEMINI_FALLBACK_MODEL": "gemini-3.5-flash"}):
+            assert get_fallback_model() == "gemini-3.5-flash"
 
     def test_legacy_model_sanitization(self):
         """Ensure legacy/retired models passed to create_llm_instance are sanitized to DEFAULT_MODEL."""
-        retired_models = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash", "gemini-2.5-flash-lite"]
+        retired_models = [
+            "gemini-1.5-flash",
+            "gemini-1.5-pro",
+            "gemini-2.0-flash",
+            "gemini-2.5-flash-lite",
+            "gemini-2.5-flash",
+        ]
         for old_model in retired_models:
             llm = create_llm_instance(old_model)
             assert llm.model == DEFAULT_MODEL
 
     def test_valid_models_preserved(self):
         """Ensure active free-tier models are preserved as-is."""
-        valid_models = ["gemini-2.5-flash", "gemini-3.5-flash-lite", "gemini-3.5-flash"]
+        valid_models = ["gemini-3.5-flash", "gemini-3.5-flash-lite"]
         for valid in valid_models:
             llm = create_llm_instance(valid)
             assert llm.model == valid
@@ -73,7 +87,7 @@ class TestModelConfiguration:
         """Ensure chat and mood runners instantiate with proper models."""
         chat_runner = create_chat_runner(user_id="test_user")
         assert chat_runner is not None
-        assert chat_runner.agent.model.model == "gemini-2.5-flash"
+        assert chat_runner.agent.model.model == "gemini-3.5-flash"
 
         mood_runner = create_mood_runner(user_id="test_user")
         assert mood_runner is not None

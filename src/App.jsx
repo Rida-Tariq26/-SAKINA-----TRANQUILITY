@@ -771,7 +771,7 @@ const ChatTab = ({ isDark, onNavigate }) => {
           setMessages(prev => [...prev, {
             role: "assistant",
             isKeyNotice: true,
-            text: "Your Gemini API Key has exceeded its daily rate or quota limit. In Settings, you can switch to Gemini 2.0 Flash (1,500 free queries/day) or check your key.",
+            text: "Your Gemini API Key has exceeded its daily rate or quota limit. In Settings, you can switch to Gemini 3.5 Flash-Lite or check your key.",
           }]);
         } else {
           setMessages(prev => [...prev, { role: "assistant", text: data.detail || "I'm listening, but encountered an error. Please try again." }]);

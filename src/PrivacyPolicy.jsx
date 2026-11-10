@@ -255,7 +255,7 @@ export default function PrivacyPolicy({ isDark, onBack }) {
       <Section t={t} title="11. Contact Us">
         <P>
           If you have any questions or wish to exercise your privacy rights, please contact
-          us at: <span style={{ color: t.glow }}>privacy@sakina.app</span>
+          us at: <span style={{ color: t.glow }}>veiledstar01@gmail.com</span>
         </P>
       </Section>
     </LegalPage>

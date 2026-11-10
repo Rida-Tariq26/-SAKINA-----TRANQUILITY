@@ -118,7 +118,7 @@ export default function TermsOfService({ isDark, onBack }) {
       <Section t={t} title="4. Medical & Mental Health Disclaimer">
         <P>
           <strong style={{ color: t.textPrimary }}>Sakina is NOT a medical device, clinical
-          service, or licensed mental health provider.</strong> The conversations, practices,
+            service, or licensed mental health provider.</strong> The conversations, practices,
           and content within the Service are for informational and spiritual support purposes only.
         </P>
         <P>
@@ -227,7 +227,7 @@ export default function TermsOfService({ isDark, onBack }) {
       <Section t={t} title="14. Contact">
         <P>
           For questions about these Terms, contact us at:{" "}
-          <span style={{ color: t.glow }}>legal@sakina.app</span>
+          <span style={{ color: t.glow }}>veiledstar01@gmail.com</span>
         </P>
       </Section>
     </LegalPage>

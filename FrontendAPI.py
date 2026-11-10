@@ -66,8 +66,10 @@ from mood_tracker import log_and_synthesize, get_dashboard, analyze_trends, TREN
 from model_config import (
     DEFAULT_PRIMARY_MODEL,
     DEFAULT_AUXILIARY_MODEL,
+    DEFAULT_FALLBACK_MODEL,
     get_primary_model,
     get_auxiliary_model,
+    get_fallback_model,
     get_candidate_models,
 )
 
@@ -224,8 +226,8 @@ def get_effective_api_key(header_key: Optional[str] = None) -> Optional[str]:
 def create_llm_instance(model_name: str, api_key: Optional[str] = None):
     """Creates a model instance targeting the specific API key and active model."""
     target_model = model_name.strip() if model_name and model_name.strip() else DEFAULT_MODEL
-    # Sanitize any legacy retired or deprecated model identifiers
-    if any(retired in target_model for retired in ["gemini-1.5", "gemini-2.0", "gemini-2.5-flash-lite"]):
+    # Sanitize any legacy retired or deprecated model identifiers (e.g. 1.5, 2.0, 2.5-flash)
+    if any(retired in target_model for retired in ["gemini-1.5", "gemini-2.0", "gemini-2.5"]):
         target_model = DEFAULT_MODEL
     try:
         cls = LLMRegistry.resolve(target_model)
@@ -665,11 +667,12 @@ async def post_greeting_endpoint(
 
     user_id = resolve_request_user(request, authorization=authorization, x_user_id=x_user_id, x_guest_id=x_guest_id, require_auth=False)
     session_id = f"chat_{user_id}"
-    runner = create_chat_runner(api_key=effective_key, model_name=x_gemini_model, user_id=user_id)
+    primary_model_name = x_gemini_model or DEFAULT_MODEL
+    runner = create_chat_runner(api_key=effective_key, model_name=primary_model_name, user_id=user_id)
 
     try:
-        async def _call_greeting():
-            response = runner.run_async(
+        async def _call_greeting_with_runner(active_runner):
+            response = active_runner.run_async(
                 user_id=user_id,
                 session_id=session_id,
                 new_message=types.Content(
@@ -683,7 +686,17 @@ async def post_greeting_endpoint(
                     final_text = event.content.parts[0].text
             return final_text
 
-        final_text = await asyncio.wait_for(_call_greeting(), timeout=20.0)
+        try:
+            final_text = await asyncio.wait_for(_call_greeting_with_runner(runner), timeout=20.0)
+        except Exception as primary_err:
+            fallback_model = get_fallback_model()
+            if fallback_model and fallback_model != primary_model_name:
+                logger.warning(f"Greeting primary model '{primary_model_name}' failed ({primary_err}); attempting fallback to '{fallback_model}'...")
+                fb_runner = create_chat_runner(api_key=effective_key, model_name=fallback_model, user_id=user_id)
+                final_text = await asyncio.wait_for(_call_greeting_with_runner(fb_runner), timeout=20.0)
+            else:
+                raise primary_err
+
         return {"response": final_text if final_text else fallback_greeting}
     except Exception as e:
         logger.warning(f"Greeting generation fallback: {e}")
@@ -712,13 +725,14 @@ async def post_chat_endpoint(
 
     user_id = resolve_request_user(request, authorization=authorization, x_user_id=x_user_id, x_guest_id=x_guest_id, require_auth=False)
     session_id = f"chat_{user_id}"
-    runner = create_chat_runner(api_key=effective_key, model_name=x_gemini_model, user_id=user_id)
+    primary_model_name = x_gemini_model or DEFAULT_MODEL
+    runner = create_chat_runner(api_key=effective_key, model_name=primary_model_name, user_id=user_id)
 
     try:
         await prune_session_history(user_id=user_id, session_id=session_id, max_messages=14)
 
-        async def _call_chat():
-            response = runner.run_async(
+        async def _call_chat_with_runner(active_runner):
+            response = active_runner.run_async(
                 user_id=user_id,
                 session_id=session_id,
                 new_message=types.Content(
@@ -732,7 +746,28 @@ async def post_chat_endpoint(
                     final_text = event.content.parts[0].text
             return final_text
 
-        final_text = await asyncio.wait_for(_call_chat(), timeout=25.0)
+        try:
+            final_text = await asyncio.wait_for(_call_chat_with_runner(runner), timeout=25.0)
+        except (Exception, asyncio.CancelledError) as primary_err:
+            err_str = str(primary_err)
+            fallback_model = get_fallback_model()
+            is_recoverable = any(
+                code in err_str
+                for code in [
+                    "429", "503", "404", "RESOURCE_EXHAUSTED", "UNAVAILABLE",
+                    "NOT_FOUND", "high demand", "Server disconnected", "InternalServerError"
+                ]
+            )
+            if is_recoverable and fallback_model and fallback_model != primary_model_name:
+                logger.warning(
+                    f"Primary chat model '{primary_model_name}' encountered error ({err_str}). "
+                    f"Falling back to verified free model '{fallback_model}'..."
+                )
+                fallback_runner = create_chat_runner(api_key=effective_key, model_name=fallback_model, user_id=user_id)
+                final_text = await asyncio.wait_for(_call_chat_with_runner(fallback_runner), timeout=25.0)
+            else:
+                raise primary_err
+
         if not final_text:
             final_text = "I am listening. Please continue."
             
@@ -759,7 +794,10 @@ async def post_chat_endpoint(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid Gemini API key. Please update your API key in Settings.",
             )
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=err_str)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="The AI model service is temporarily unavailable. Please try again in a moment.",
+        )
 
 
 # ─────────────────────────────────────────────
