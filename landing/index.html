@@ -16,11 +16,8 @@
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   <meta name="theme-color" content="#07111C" />
 
-  <!-- Canonical URL: Update with your production Render Static Site URL once live -->
+  <!-- Canonical URL -->
   <link rel="canonical" href="https://sakina-islamic-wellness-ai.onrender.com/" />
-
-  <!-- Backend API Service URL: Used by client forms for feedback submissions -->
-  <meta name="sakina-api-base" content="https://sakina-tranquility.onrender.com" />
 
   <!-- Favicons and Search Engine Icons -->
   <link rel="icon" href="/favicon.ico" sizes="48x48" />
@@ -152,173 +149,165 @@
 
 <body>
   <!-- Accessibility Skip Link -->
-  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <a href="#top" class="skip-link">Skip to main content</a>
 
-  <!-- Header & Navigation -->
-  <header class="site-header" id="top">
+  <!-- Ambient Liquid Glass Background Canvas -->
+  <div class="ambient-canvas" aria-hidden="true">
+    <div class="ambient-orb orb-primary"></div>
+    <div class="ambient-orb orb-secondary"></div>
+    <div class="ambient-orb orb-tertiary"></div>
+    <div class="ambient-grid"></div>
+  </div>
+
+  <!-- Header / Navigation Bar -->
+  <header class="glass-header">
     <div class="container header-container">
       <a href="#top" class="brand-link" aria-label="Sakina Home">
-        <img src="assets/logo.png" alt="Sakina Emblem" class="brand-logo" width="38" height="38" />
-        <div class="brand-text">
+        <img src="assets/logo.png" alt="Sakina Emblem" class="brand-logo" width="36" height="36" />
+        <div class="brand-text-wrap">
           <span class="brand-name">Sakina</span>
           <span class="brand-arabic" lang="ar" dir="rtl">سكينة</span>
         </div>
       </a>
 
-      <!-- Mobile Navigation Hamburger Toggle -->
-      <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="primaryNav"
-        aria-label="Toggle navigation menu">
-        <span class="hamburger-bar"></span>
-        <span class="hamburger-bar"></span>
-        <span class="hamburger-bar"></span>
-      </button>
-
-      <!-- Primary Navigation -->
-      <nav class="primary-nav" id="primaryNav" aria-label="Primary Navigation">
-        <ul class="nav-list">
-          <li><a href="#about" class="nav-link">What is Sakina</a></li>
-          <li><a href="#audience" class="nav-link">Who It's For</a></li>
-          <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
-          <li><a href="#foundations" class="nav-link">Tradition & Science</a></li>
-          <li><a href="#privacy" class="nav-link">Privacy</a></li>
-          <li><a href="#faq" class="nav-link">FAQ</a></li>
-          <li><a href="#feedback" class="nav-link">Reviews</a></li>
-          <li><a href="#disclaimer" class="nav-link nav-link-disclaimer">Disclaimer</a></li>
-        </ul>
-        <div class="nav-cta">
-          <!-- Main App Launch CTA: Configured to point to the live Render application -->
-          <a href="https://sakina-tranquility.onrender.com" class="btn btn-primary btn-sm" target="_blank"
-            rel="noopener">
-            <span>Launch Sakina App</span>
-            <svg class="icon-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="7" y1="17" x2="17" y2="7"></line>
-              <polyline points="7 7 17 7 17 17"></polyline>
-            </svg>
-          </a>
-        </div>
+      <!-- Desktop Navigation -->
+      <nav class="desktop-nav" aria-label="Primary Navigation">
+        <a href="#pillars" class="nav-link">Pillars</a>
+        <a href="#capabilities" class="nav-link">Capabilities</a>
+        <a href="#sanctuary" class="nav-link">Privacy &amp; Ethics</a>
+        <a href="#faq" class="nav-link">FAQ</a>
+        <a href="#disclaimer" class="nav-link">Disclaimer</a>
       </nav>
+
+      <!-- Header CTA -->
+      <div class="header-actions">
+        <a href="https://sakina-tranquility.onrender.com" class="btn btn-glass-nav" target="_blank" rel="noopener">
+          <span>Launch Sakina App</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="7" y1="17" x2="17" y2="7"></line>
+            <polyline points="7 7 17 7 17 17"></polyline>
+          </svg>
+        </a>
+        <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <span class="toggle-bar"></span>
+          <span class="toggle-bar"></span>
+          <span class="toggle-bar"></span>
+        </button>
+      </div>
     </div>
   </header>
 
-  <!-- Main Content Area -->
-  <main id="main-content">
+  <!-- Mobile Navigation Drawer -->
+  <div class="mobile-drawer" id="mobileDrawer" aria-hidden="true">
+    <nav class="mobile-nav" aria-label="Mobile Navigation">
+      <a href="#pillars" class="mobile-nav-link">Pillars</a>
+      <a href="#capabilities" class="mobile-nav-link">Capabilities</a>
+      <a href="#sanctuary" class="mobile-nav-link">Privacy &amp; Ethics</a>
+      <a href="#faq" class="mobile-nav-link">FAQ</a>
+      <a href="#disclaimer" class="mobile-nav-link">Disclaimer</a>
+      <a href="https://sakina-tranquility.onrender.com" class="btn btn-primary btn-block" target="_blank" rel="noopener">Launch Sakina App</a>
+    </nav>
+  </div>
 
+  <main id="top">
     <!-- Hero Section -->
-    <section class="hero-section" aria-labelledby="hero-title">
-      <div class="hero-glow hero-glow-1" aria-hidden="true"></div>
-      <div class="hero-glow hero-glow-2" aria-hidden="true"></div>
-
+    <section class="section-hero">
       <div class="container hero-container">
-        <div class="hero-content">
-          <div class="hero-badge">
-            <span class="badge-sparkle" aria-hidden="true">✦</span>
+        <div class="hero-text-col">
+          <div class="glass-pill-badge fade-in">
+            <span class="badge-sparkle">✦</span>
             <span>Free AI Mental Wellness Companion • Islamic Psychology &amp; Cognitive Science</span>
           </div>
 
-          <h1 id="hero-title" class="hero-title">
+          <h1 class="hero-title fade-in-1">
             Harmonizing Islamic Psychology with Evidence-Based Mental Wellness
           </h1>
 
-          <div class="hero-arabic-quote" lang="ar" dir="rtl">
+          <div class="hero-arabic-quote fade-in-2" lang="ar" dir="rtl">
             «أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ»
-            <span class="quote-translation" lang="en" dir="ltr">
+            <span class="quote-sub" lang="en" dir="ltr">
               “Verily, in the remembrance of God do hearts find rest.” — Surah Ar-Ra’d (13:28)
             </span>
           </div>
 
-          <p class="hero-description">
-            Sakina (سكينة) is a free, private AI mental wellness companion built for emotional and spiritual wellbeing. By
-            uniting classical Islamic understandings of the human soul (<em>Ilm al-Nafs</em>) with contemporary
-            cognitive science, Sakina offers empathetic dialogue, grounding Dhikr practices, an AI mood tracker, and reflective journaling in a secure sanctuary.
+          <p class="hero-description fade-in-3">
+            Sakina (سكينة) is a free, private AI mental wellness companion blending classical Islamic psychology (<em>Ilm al-Nafs</em>) with cognitive science for spiritual tranquility, daily mood tracking, and mindful reflection in a secure sanctuary.
           </p>
 
-          <div class="hero-actions">
-            <a href="https://sakina-tranquility.onrender.com" class="btn btn-primary btn-lg" target="_blank"
-              rel="noopener">
+          <div class="hero-actions fade-in-4">
+            <a href="https://sakina-tranquility.onrender.com" class="btn btn-primary btn-lg" target="_blank" rel="noopener">
               <span>Experience Sakina Free</span>
-              <svg class="icon-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <line x1="7" y1="17" x2="17" y2="7"></line>
-                <polyline points="7 7 17 7 17 17"></polyline>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
               </svg>
             </a>
-            <a href="#about" class="btn btn-secondary btn-lg">
-              <span>Learn How It Works</span>
+            <a href="#pillars" class="btn btn-secondary btn-lg">
+              <span>Explore Architecture</span>
             </a>
           </div>
 
-          <div class="hero-trust-strip">
-            <div class="trust-item">
-              <svg class="trust-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2">
+          <div class="trust-strip fade-in-4">
+            <div class="trust-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
               </svg>
               <span>100% Free &amp; Private Sanctuary</span>
             </div>
-            <div class="trust-item">
-              <svg class="trust-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2">
+            <div class="trust-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <circle cx="12" cy="12" r="10"></circle>
                 <path d="M12 6v6l4 2"></path>
               </svg>
               <span>Available 24/7 For Reflection</span>
             </div>
-            <div class="trust-item">
-              <svg class="trust-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2">
-                <path
-                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
-                </path>
+            <div class="trust-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
               </svg>
               <span>Supportive Wellness (Non-Clinical)</span>
             </div>
           </div>
         </div>
 
-        <!-- Visual Preview Card -->
-        <div class="hero-visual" aria-hidden="true">
-          <div class="preview-card">
-            <div class="preview-header">
-              <div class="preview-avatar">
-                <img src="assets/logo.png" alt="" width="28" height="28" />
+        <!-- Interactive Liquid Glass UI Mockup -->
+        <div class="hero-mockup-col fade-in-2">
+          <div class="liquid-glass-card mockup-card">
+            <div class="mockup-header">
+              <div class="mockup-brand">
+                <img src="assets/logo.png" alt="Sakina Emblem" class="mockup-avatar" width="28" height="28" />
+                <div>
+                  <div class="mockup-name">Sakina Companion</div>
+                  <div class="mockup-status">Present &amp; Listening</div>
+                </div>
               </div>
-              <div class="preview-info">
-                <span class="preview-name">Sakina Companion</span>
-                <span class="preview-status">Present & Listening</span>
-              </div>
-              <div class="preview-tag">Adaptive Mode</div>
+              <div class="mockup-mode-pill">Adaptive Mode</div>
             </div>
 
-            <div class="preview-messages">
-              <div class="chat-bubble chat-user">
-                <p>“I feel overwhelmed by responsibilities this week. My mind is racing, and I feel disconnected
-                  spiritually and emotionally.”</p>
-                <span class="chat-time">Just now</span>
+            <div class="mockup-chat-body">
+              <div class="chat-bubble bubble-user">
+                <p>“I feel overwhelmed by my workload this week. My thoughts are racing, and I need a moment of calm.”</p>
+                <span class="bubble-meta">Just now</span>
               </div>
 
-              <div class="chat-bubble chat-ai">
-                <p>“Peace be upon you. Let us pause together for a gentle breath. What you are feeling is valid; the
-                  human heart (<em>Qalb</em>) naturally feels strained under heavy loads.</p>
-                <p>Remember that in Islamic psychology, practicing <em>Tawakkul</em> begins with taking what practical
-                  steps you can today, while releasing the burden of outcomes beyond your control. Would you like a
-                  2-minute rhythmic breathing reset paired with Dhikr, or would you prefer to explore what is weighing
-                  on you most?”</p>
-                <div class="chat-action-chips">
-                  <span class="chip">✦ 2-Minute Breathing & Dhikr</span>
-                  <span class="chip">✦ Unpack Racing Thoughts</span>
+              <div class="chat-bubble bubble-ai">
+                <p>“Peace be upon you. Let us pause together for a grounding breath. What you are carrying is heavy, and it is completely natural for your heart (<em>Qalb</em>) to feel strained.</p>
+                <p>In Islamic psychology, practicing <em>Tawakkul</em> begins with taking the single next practical step in front of you, while releasing outcomes beyond your control.”</p>
+                <div class="mockup-chips">
+                  <span class="mini-chip">✦ 2-Minute Dhikr Reset</span>
+                  <span class="mini-chip">✦ Unpack Racing Thoughts</span>
                 </div>
               </div>
             </div>
 
-            <div class="preview-footer">
-              <div class="preview-stat">
-                <span class="stat-number">3</span>
-                <span class="stat-label">Modes: Spiritual, Neuro, Balanced</span>
+            <div class="mockup-footer">
+              <div class="footer-stat">
+                <span class="stat-num">3</span>
+                <span class="stat-lbl">Harmonized Modes</span>
               </div>
-              <div class="preview-stat">
-                <span class="stat-number">100%</span>
-                <span class="stat-label">Confidential Sanctuary</span>
+              <div class="footer-stat">
+                <span class="stat-num">100%</span>
+                <span class="stat-lbl">Confidential &amp; Private</span>
               </div>
             </div>
           </div>
@@ -326,799 +315,303 @@
       </div>
     </section>
 
-    <!-- Section 1: What Sakina Is -->
-    <section class="section section-about" id="about" aria-labelledby="about-title">
+    <!-- Section 1: The Three Harmonized Pillars -->
+    <section class="section" id="pillars">
       <div class="container">
-        <div class="section-header">
-          <span class="section-kicker">Understanding Sakina</span>
-          <h2 id="about-title" class="section-title">What is Sakina? (سكينة)</h2>
+        <div class="section-heading text-center">
+          <span class="section-label">Foundations</span>
+          <h2 class="section-title">The Three Harmonized Pillars</h2>
           <p class="section-subtitle">
-            In the Arabic and Islamic tradition, <em>Sakina</em> describes an abiding, God-given tranquility—an inner
-            stillness of the heart and mind that remains steady even amidst life's fiercest storms.
+            A synthesis of traditional spiritual wisdom and empirical psychological science, engineered for modern cognitive balance.
           </p>
         </div>
 
-        <div class="about-grid">
-          <article class="about-card">
-            <div class="card-icon" aria-hidden="true">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
-                <path d="M12 2a10 10 0 0 1 10 10h-10V2z"></path>
-                <circle cx="12" cy="12" r="6"></circle>
-              </svg>
+        <div class="grid grid-3">
+          <div class="liquid-glass-card pillar-card">
+            <div class="card-icon-wrap">
+              <span class="pillar-symbol">✦</span>
             </div>
-            <h3 class="card-title">Bridging Two Worlds</h3>
-            <p class="card-text">
-              For people of faith, conventional wellness apps often omit the spiritual reality of the soul, prayer, and
-              du'a. Conversely, traditional religious advice can sometimes lack structured cognitive-behavioral tools
-              and physiological awareness. Sakina harmonizes both into a unified, gentle sanctuary.
+            <h3 class="card-title">Spiritual Tranquility</h3>
+            <p class="card-description">
+              Rooted in classical Islamic psychology (<em>Ilm al-Nafs</em>). Understands the interplay between soul (<em>nafs</em>), heart (<em>qalb</em>), and mind through guided Dhikr, reflective contemplation, and spiritual solace.
             </p>
-          </article>
-
-          <article class="about-card">
-            <div class="card-icon" aria-hidden="true">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-              </svg>
-            </div>
-            <h3 class="card-title">Classical Islamic Psychology</h3>
-            <p class="card-text">
-              Rooted in centuries of scholarship—from <strong>Abu Zayd al-Balkhi</strong> (the pioneer of mental
-              hygiene) to <strong>Imam Al-Ghazali</strong> and <strong>Ibn al-Qayyim</strong>—Sakina draws upon
-              foundational concepts of <em>Ilm al-Nafs</em>, acknowledging the interconnectedness of heart, intellect,
-              and physical body.
-            </p>
-          </article>
-
-          <article class="about-card">
-            <div class="card-icon" aria-hidden="true">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-                <line x1="9" y1="9" x2="9.01" y2="9"></line>
-                <line x1="15" y1="9" x2="15.01" y2="9"></line>
-              </svg>
-            </div>
-            <h3 class="card-title">Evidence-Based Clinical Science</h3>
-            <p class="card-text">
-              Modern modalities such as Cognitive Behavioral Therapy (CBT), Acceptance and Commitment Therapy (ACT),
-              Polyvagal nervous system theory, and somatic mindfulness validate what classical thinkers described:
-              conscious breath, mindful reflection, and cognitive reframing regulate the mind and ease distress.
-            </p>
-          </article>
-        </div>
-
-        <div class="highlight-callout">
-          <div class="callout-icon" aria-hidden="true">✦</div>
-          <div class="callout-content">
-            <h3 class="callout-title">Accessible, Non-Dogmatic, and Supportive</h3>
-            <p class="callout-text">
-              Sakina does not speak with rigid religious authoritarianism or clinical coldness. It speaks with warmth,
-              empathy, and intellectual humility. Whether you are facing everyday stress, academic fatigue, burnout, or
-              quiet moments of spiritual longing, Sakina adapts to meet you wherever you are on your personal journey.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section 2: Who Sakina is For -->
-    <section class="section section-audience" id="audience" aria-labelledby="audience-title">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-kicker">Intended Audience</span>
-          <h2 id="audience-title" class="section-title">Who is Sakina For?</h2>
-          <p class="section-subtitle">
-            A supportive space designed for individuals seeking emotional wellbeing that respects their values, cultural
-            background, and spiritual worldview.
-          </p>
-        </div>
-
-        <div class="audience-grid">
-          <div class="audience-card">
-            <div class="audience-pill">Audience</div>
-            <h3 class="audience-title">Muslims & Faith-Conscious Individuals</h3>
-            <p class="audience-desc">
-              Anyone yearning for emotional support that acknowledges the therapeutic power of du'a, Quranic reflection,
-              and remembrance without ignoring evidence-based mental health science.
-            </p>
-            <ul class="audience-points">
-              <li>Feel understood without having to explain religious practices or vocabulary.</li>
-              <li>Integrate faith-based coping mechanisms seamlessly into daily life.</li>
-              <li>Benefit from psychological reframing that aligns with prophetic wisdom.</li>
+            <ul class="card-feature-list">
+              <li>Paced Dhikr and contemplative breathing</li>
+              <li>Mindful remembrance for emotional balance</li>
+              <li>Anchors from classical scholars (Al-Balkhi, Al-Ghazali)</li>
             </ul>
           </div>
 
-          <div class="audience-card">
-            <div class="audience-pill">Audience</div>
-            <h3 class="audience-title">Seekers of Mindful, Holistic Reflection</h3>
-            <p class="audience-desc">
-              Anyone interested in Islamic spiritual psychology, contemplation, and holistic wellness practices,
-              regardless of where they are on their spiritual journey.
+          <div class="liquid-glass-card pillar-card">
+            <div class="card-icon-wrap">
+              <span class="pillar-symbol">◈</span>
+            </div>
+            <h3 class="card-title">Cognitive Neuroscience</h3>
+            <p class="card-description">
+              Enriched with modern evidence-based methodologies. Integrates Cognitive Behavioral Therapy (CBT), Acceptance and Commitment Therapy (ACT), and somatic nervous system regulation.
             </p>
-            <ul class="audience-points">
-              <li>Explore meditative reflection (<em>Muraqabah</em>) and daily gratitude (<em>Shukr</em>).</li>
-              <li>Overcome negative ruminative loops with somatic breathwork.</li>
-              <li>Engage with accessible, non-dogmatic explanations of heart-mind balance.</li>
+            <ul class="card-feature-list">
+              <li>Vagal tone regulation &amp; 4-7-8 breath pacing</li>
+              <li>Cognitive reframing of anxious thought spirals</li>
+              <li>Physiological sigh &amp; somatic de-escalation</li>
             </ul>
           </div>
 
-          <div class="audience-card">
-            <div class="audience-pill">Audience</div>
-            <h3 class="audience-title">Students & Professionals Navigating Stress</h3>
-            <p class="audience-desc">
-              Individuals dealing with daily workplace pressure, academic exhaustion, caregiver burnout, or transition
-              phases in personal life.
+          <div class="liquid-glass-card pillar-card">
+            <div class="card-icon-wrap">
+              <span class="pillar-symbol">❖</span>
+            </div>
+            <h3 class="card-title">Adaptive Intelligence</h3>
+            <p class="card-description">
+              A responsive architecture that adapts dynamically to your personal comfort level. Seamlessly transition between faith-aligned, scientific inquiry, or clinical non-religious modalities.
             </p>
-            <ul class="audience-points">
-              <li>Receive timely de-escalation exercises when feeling overwhelmed.</li>
-              <li>Track daily emotional states to identify stressors and positive patterns.</li>
-              <li>Engage in private, non-judgmental journaling anytime, day or night.</li>
+            <ul class="card-feature-list">
+              <li>Dynamic real-time mode detection</li>
+              <li>Empathetic 4-step conversation protocol</li>
+              <li>Zero diagnostic claims; strict ethical guardrails</li>
             </ul>
           </div>
         </div>
+      </div>
+    </section>
 
-        <!-- Clarification Banner -->
-        <div class="boundary-box">
-          <div class="boundary-header">
-            <svg class="boundary-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
-            <h3 class="boundary-title">A Supportive Wellness Tool — Not A Replacement for Therapy</h3>
+    <!-- Section 2: Core Capabilities Showcase -->
+    <section class="section" id="capabilities">
+      <div class="container">
+        <div class="section-heading text-center">
+          <span class="section-label">Capabilities</span>
+          <h2 class="section-title">Engineered for Stillness &amp; Clarity</h2>
+          <p class="section-subtitle">
+            Every feature in Sakina is designed with intentional restraint, ensuring high emotional utility without cognitive overload.
+          </p>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="liquid-glass-card feature-card">
+            <div class="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </div>
+            <h3 class="card-title">AI Mental Wellness Companion</h3>
+            <p class="card-description">
+              Empathetic, faith-aligned emotional support guided by a structured protocol: gentle validation, a wisdom anchor, an actionable reset, and a reflective check-in.
+            </p>
           </div>
-          <p class="boundary-text">
-            Sakina is created to support personal emotional wellbeing and spiritual contemplation. It is <strong>not a
-              medical device, psychiatric facility, or licensed therapy service</strong>. If you are struggling with
-            clinical psychiatric illness, major depressive episodes, or acute trauma, we encourage you to seek care from
-            qualified mental health practitioners alongside your personal spiritual practices.
-          </p>
-        </div>
-      </div>
-    </section>
 
-    <!-- Section 3: How Sakina Works -->
-    <section class="section section-how" id="how-it-works" aria-labelledby="how-title">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-kicker">Core Capabilities</span>
-          <h2 id="how-title" class="section-title">How Sakina Works for You</h2>
-          <p class="section-subtitle">
-            Intuitive, thoughtful features designed to bring structure, calm, and self-awareness to your daily routine.
-          </p>
-        </div>
-
-        <div class="features-grid">
-          <article class="feature-item">
-            <div class="feature-num">01</div>
-            <div class="feature-body">
-              <h3 class="feature-heading">Adaptive AI Wellness Companion &amp; Emotional Support</h3>
-              <p class="feature-text">
-                Speak naturally about emotional stressors, burnout, or spiritual unease. Sakina’s AI wellness chatbot listens with empathy, providing personalized emotional wellness reflections, faith-aligned reminders, or neurobiological coping frameworks based on your needs.
-              </p>
-            </div>
-          </article>
-
-          <article class="feature-item">
-            <div class="feature-num">02</div>
-            <div class="feature-body">
-              <h3 class="feature-heading">Islamic Mindfulness &amp; Dhikr App</h3>
-              <p class="feature-text">
-                Engage in guided remembrances (<em>Dhikr</em>) paired with somatic exercises like box breathing, 4-7-8 pacing, and mindful grounding. Experience how rhythmic contemplation fosters spiritual tranquility while clinically down-regulating nervous system hyperarousal.
-              </p>
-            </div>
-          </article>
-
-          <article class="feature-item">
-            <div class="feature-num">03</div>
-            <div class="feature-body">
-              <h3 class="feature-heading">Free AI Mood Tracker &amp; Longitudinal Trends</h3>
-              <p class="feature-text">
-                Log your daily mood, feelings, and energy levels with a simple touch. This free AI mood tracker synthesizes check-ins over time to help you build emotional self-awareness, recognize triggers, and cultivate emotional resilience non-judgmentally.
-              </p>
-            </div>
-          </article>
-
-          <article class="feature-item">
-            <div class="feature-num">04</div>
-            <div class="feature-body">
-              <h3 class="feature-heading">AI Journaling Companion &amp; Muhasabah Reflection</h3>
-              <p class="feature-text">
-                Practice the classical discipline of <em>Muhasabah</em> (honest self-accounting) through guided journaling prompts. Reframe negative cognitive distortions with our AI journaling companion and nurture lasting gratitude (<em>Shukr</em>).
-              </p>
-            </div>
-          </article>
-
-          <article class="feature-item">
-            <div class="feature-num">05</div>
-            <div class="feature-body">
-              <h3 class="feature-heading">Meditative Audio &amp; Sacred Recitation</h3>
-              <p class="feature-text">
-                Listen to peaceful Quranic recitations, soothing ambient audio, and guided contemplative reflections
-                designed to foster restorative calm and facilitate prayerful focus during breaks or before sleep.
-              </p>
-            </div>
-          </article>
-
-          <article class="feature-item">
-            <div class="feature-num">06</div>
-            <div class="feature-body">
-              <h3 class="feature-heading">Built-in Crisis Safeguards &amp; Wellness Boundaries</h3>
-              <p class="feature-text">
-                Responsible AI is fundamental to Sakina. Operating strictly as an emotional wellness companion (not clinical therapy), the platform includes deterministic multi-tier crisis safeguards that immediately surface localized emergency hotlines (such as 988 or Samaritans) when acute distress is detected.
-              </p>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section 4: Islamic Psychology Foundations & Scientific Parallels -->
-    <section class="section section-foundations" id="foundations" aria-labelledby="foundations-title">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-kicker">Philosophical & Psychological Synergy</span>
-          <h2 id="foundations-title" class="section-title">Classical Wisdom Meets Modern Evidence</h2>
-          <p class="section-subtitle">
-            Islamic scholarship has long recognized that the human soul requires both spiritual nourishment and
-            structured cognitive discipline. See how traditional concepts mirror modern psychological science.
-          </p>
-        </div>
-
-        <div class="table-container">
-          <table class="comparison-table">
-            <thead>
-              <tr>
-                <th scope="col">Islamic Concept (Ilm al-Nafs)</th>
-                <th scope="col">Modern Psychological Parallel</th>
-                <th scope="col">Integrated Mechanism in Sakina</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>
-                  <strong>Tawakkul (توكل)</strong>
-                  <span class="table-sub">Active reliance on God after tying one’s camel</span>
-                </td>
-                <td>
-                  <strong>Acceptance (ACT) & Internal Locus of Control</strong>
-                  <span class="table-sub">Focusing on manageable effort while relinquishing anxiety over uncontrollable
-                    outcomes</span>
-                </td>
-                <td>
-                  Guides users to separate their actionable responsibilities from existential worry, reducing chronic
-                  anticipatory stress.
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <strong>Dhikr (ذكر)</strong>
-                  <span class="table-sub">Rhythmic spiritual remembrance and contemplation</span>
-                </td>
-                <td>
-                  <strong>Cognitive Defusion & Attentional Reset</strong>
-                  <span class="table-sub">Interrupting negative ruminative feedback loops; down-regulating amygdala
-                    reactivity</span>
-                </td>
-                <td>
-                  Anchors racing thoughts in rhythmic recitation, activating parasympathetic vagal tone and reducing
-                  hyperarousal.
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <strong>Muraqabah (مراقبة)</strong>
-                  <span class="table-sub">Quiet self-vigilance and mindful awareness of God</span>
-                </td>
-                <td>
-                  <strong>Mindfulness & MBSR</strong>
-                  <span class="table-sub">Non-judgmental observation of inner sensations, thoughts, and cognitive
-                    states</span>
-                </td>
-                <td>
-                  Encourages compassionate introspection where sensations and feelings are observed without
-                  self-condemnation.
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <strong>Muhasabah (محاسبة)</strong>
-                  <span class="table-sub">Honest, proactive self-accounting and reflection</span>
-                </td>
-                <td>
-                  <strong>Cognitive Restructuring (CBT)</strong>
-                  <span class="table-sub">Identifying cognitive distortions, testing automatic thoughts, and reframing
-                    narratives</span>
-                </td>
-                <td>
-                  Offers structured journaling prompts to examine unhelpful assumptions, celebrate positive deeds, and
-                  renew intentions.
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <strong>Sabr (صبر)</strong>
-                  <span class="table-sub">Patient perseverance and emotional fortitude</span>
-                </td>
-                <td>
-                  <strong>Distress Tolerance & Emotional Regulation</strong>
-                  <span class="table-sub">Building psychological stamina during pain without impulsive avoidance or
-                    suppression</span>
-                </td>
-                <td>
-                  Reframes hardship as a meaningful stage for resilience and growth, pairing patience with practical
-                  coping tools.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section 5: Privacy, Security & Data Sovereignty -->
-    <section class="section section-privacy" id="privacy" aria-labelledby="privacy-title">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-kicker">Data Sovereignty & Privacy</span>
-          <h2 id="privacy-title" class="section-title">Your Sanctuary, Your Privacy</h2>
-          <p class="section-subtitle">
-            Vulnerability requires absolute safety. Sakina is engineered from the ground up to protect your sacred
-            reflections and personal data.
-          </p>
-        </div>
-
-        <div class="privacy-grid">
-          <article class="privacy-card">
-            <div class="privacy-icon" aria-hidden="true">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          <div class="liquid-glass-card feature-card">
+            <div class="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
               </svg>
             </div>
-            <h3 class="privacy-title">Zero Data Monetization</h3>
-            <p class="privacy-text">
-              We do not sell, rent, or trade your personal reflections, journal entries, or mood records to advertisers
-              or third-party data brokers. Your inner thoughts remain strictly yours.
+            <h3 class="card-title">Free AI Mood Tracker &amp; Analytics</h3>
+            <p class="card-description">
+              Track daily feelings and energy patterns over time. Gain emotional self-awareness through longitudinal trend synthesis without intrusive profiling.
             </p>
-          </article>
+          </div>
 
-          <article class="privacy-card">
-            <div class="privacy-icon" aria-hidden="true">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path
-                  d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4">
-                </path>
+          <div class="liquid-glass-card feature-card">
+            <div class="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
               </svg>
             </div>
-            <h3 class="privacy-title">Bring-Your-Own-Key (BYOK)</h3>
-            <p class="privacy-text">
-              Have your own Google Gemini API key? Sakina allows you to plug it directly into your settings, giving you
-              direct sovereignty over the AI model usage without central proxy retention.
+            <h3 class="card-title">AI Journaling Companion (Muhasabah)</h3>
+            <p class="card-description">
+              Practice honest self-accounting and structured cognitive reframing prompts to challenge unhelpful distortions and cultivate lasting gratitude (<em>Shukr</em>).
             </p>
-          </article>
+          </div>
 
-          <article class="privacy-card">
-            <div class="privacy-icon" aria-hidden="true">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
+          <div class="liquid-glass-card feature-card">
+            <div class="feature-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
               </svg>
             </div>
-            <h3 class="privacy-title">Full Export & Erasure (GDPR/CCPA)</h3>
-            <p class="privacy-text">
-              You maintain complete ownership of your history. Download a full copy of your journal and mood logs in
-              readable JSON at any time, or permanently purge your account data with a single click.
+            <h3 class="card-title">Islamic Mindfulness &amp; Dhikr App</h3>
+            <p class="card-description">
+              Rhythmic remembrance paired with guided breath pacing (box breathing, 4-7-8) and tranquil ambient soundscapes to down-regulate nervous system strain.
             </p>
-          </article>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Section 6: Frequently Asked Questions (FAQ) -->
-    <section class="section section-faq" id="faq" aria-labelledby="faq-title">
+    <!-- Section 3: Sanctuary & Data Ethics -->
+    <section class="section" id="sanctuary">
       <div class="container">
-        <div class="section-header">
-          <span class="section-kicker">Got Questions?</span>
-          <h2 id="faq-title" class="section-title">Frequently Asked Questions</h2>
+        <div class="liquid-glass-card sanctuary-banner">
+          <div class="sanctuary-content">
+            <span class="section-label">Privacy Sovereignty</span>
+            <h2 class="section-title">Your Sanctuary, Protected by Engineering</h2>
+            <p class="sanctuary-text">
+              Sakina treats your personal emotional and spiritual reflections as sacred. We adhere to rigorous privacy standards with absolute data sovereignty.
+            </p>
+
+            <div class="grid grid-3 sanctuary-grid">
+              <div class="sanctuary-point">
+                <h4>✦ Zero Data Monetization</h4>
+                <p>We never sell, rent, or trade your personal reflections, journal entries, or mood records to third parties or advertisers.</p>
+              </div>
+              <div class="sanctuary-point">
+                <h4>✦ Bring-Your-Own-Key (BYOK)</h4>
+                <p>Support for Bring Your Own Key (BYOK). Connect your Google Gemini API key directly for complete control with zero central storage.</p>
+              </div>
+              <div class="sanctuary-point">
+                <h4>✦ Complete 1-Click Erasure</h4>
+                <p>Exercise your fundamental right to be forgotten. Download full logs in standard JSON or permanently delete all records with one click.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: Concise Accordion FAQ -->
+    <section class="section" id="faq">
+      <div class="container">
+        <div class="section-heading text-center">
+          <span class="section-label">Common Inquiries</span>
+          <h2 class="section-title">Frequently Asked Questions</h2>
           <p class="section-subtitle">
-            Clear, honest answers about Sakina’s features, philosophy, and boundaries.
+            Clear, transparent answers about Sakina's capabilities, privacy, and boundaries.
           </p>
         </div>
 
-        <div class="faq-list">
-          <details class="faq-item" open>
+        <div class="faq-container">
+          <details class="liquid-glass-card faq-item" open>
             <summary class="faq-question">
-              <span>What makes Sakina different from mainstream mental health apps?</span>
-              <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" aria-hidden="true">
+              <span>How does Sakina balance spiritual reflection and cognitive science?</span>
+              <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </summary>
             <div class="faq-answer">
-              <p>
-                Mainstream wellness apps frequently disregard or secularize spiritual practices, while traditional
-                religious apps often provide litanies without emotional processing tools. Sakina treats spiritual health
-                and cognitive/somatic wellbeing as inseparable aspects of one unified human being. It integrates both
-                prophetic traditions and modern psychological frameworks (like CBT and Polyvagal theory) in a
-                responsive, AI-guided format.
-              </p>
+              <p>Sakina views spiritual grounding and cognitive science as complementary disciplines. It uses classical Islamic psychology (<em>Ilm al-Nafs</em>) to understand spiritual meaning and purpose, while applying cognitive neuroscience (CBT, ACT, nervous system regulation) to provide structured, practical exercises for daily stress.</p>
             </div>
           </details>
 
-          <details class="faq-item">
+          <details class="liquid-glass-card faq-item">
             <summary class="faq-question">
               <span>Is Sakina free to use?</span>
-              <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" aria-hidden="true">
+              <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </summary>
             <div class="faq-answer">
-              <p>
-                <strong>Yes, completely free.</strong> Sakina is a free AI mental wellness companion. You have full access to interactive emotional support dialogues, Islamic mindfulness and Dhikr practices, the AI mood tracker, and reflective journaling without subscription fees or paywalls. You can also optionally connect your own Google Gemini API key (BYOK) for complete data sovereignty.
-              </p>
+              <p><strong>Yes, completely free.</strong> Sakina is a free AI mental wellness companion offering full access to conversational emotional support, Islamic mindfulness and Dhikr practices, AI mood tracking, and reflective journaling without subscription fees or paywalls. You can also optionally connect your own Gemini API key (BYOK).</p>
             </div>
           </details>
 
-          <details class="faq-item">
+          <details class="liquid-glass-card faq-item">
             <summary class="faq-question">
-              <span>Can Sakina replace a licensed therapist or psychiatrist?</span>
-              <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" aria-hidden="true">
+              <span>Can I use Sakina if I am not religious?</span>
+              <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </summary>
             <div class="faq-answer">
-              <p>
-                <strong>No.</strong> Sakina is explicitly an AI-powered personal wellness companion and educational
-                reflection tool. It does not provide clinical diagnoses, psychiatric prescriptions, or licensed
-                psychotherapy. If you are experiencing serious psychological distress or mental health illness, we
-                strongly recommend consulting a licensed healthcare or mental health professional.
-              </p>
+              <p>Absolutely. While informed by classical Islamic psychology, Sakina offers multiple interaction modes, including a dedicated scientific mode focused purely on cognitive reframing, somatic breathwork, and emotional regulation without spiritual citations.</p>
             </div>
           </details>
 
-          <details class="faq-item">
+          <details class="liquid-glass-card faq-item">
             <summary class="faq-question">
-              <span>Do I have to be Muslim to benefit from Sakina?</span>
-              <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" aria-hidden="true">
+              <span>Is Sakina a replacement for a therapist or doctor?</span>
+              <svg class="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </summary>
             <div class="faq-answer">
-              <p>
-                While Sakina is deeply informed by Islamic psychology (<em>Ilm al-Nafs</em>) and includes Arabic
-                spiritual practices, its underlying exercises—such as cognitive reframing, somatic breathwork, mindful
-                contemplation, and gratitude tracking—are beneficial to anyone seeking compassionate emotional
-                reflection and inner stillness. You can also toggle between spiritual, neuroscientific, or balanced
-                modes.
-              </p>
-            </div>
-          </details>
-
-          <details class="faq-item">
-            <summary class="faq-question">
-              <span>Does Sakina issue religious fatwas or theological rulings?</span>
-              <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" aria-hidden="true">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </summary>
-            <div class="faq-answer">
-              <p>
-                No. Sakina is not a religious authority or an Islamic jurisprudential (<em>Fiqh</em>) tool. It never
-                issues legal rulings or sectarian declarations. Its focus is strictly on emotional reflection,
-                comforting spiritual remembrance, and psychological wellness rooted in mainstream classical principles.
-              </p>
-            </div>
-          </details>
-
-          <details class="faq-item">
-            <summary class="faq-question">
-              <span>How do I get started with Sakina?</span>
-              <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" aria-hidden="true">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </summary>
-            <div class="faq-answer">
-              <p>
-                You can launch the web application directly in your browser. You can sign in with your Google account to
-                save mood history and journals across devices, or provide your own Gemini API key for private,
-                custom-controlled sessions.
-              </p>
+              <p><strong>No.</strong> Sakina is strictly an educational and supportive wellness companion for daily reflection and stress management. It does not provide medical diagnoses, psychiatric therapy, or emergency care. In acute distress, built-in crisis safeguards immediately surface professional emergency helplines.</p>
             </div>
           </details>
         </div>
       </div>
     </section>
 
-    <!-- Section 7: Medical & Crisis Disclaimer -->
-    <section class="section section-disclaimer" id="disclaimer" aria-labelledby="disclaimer-title">
+    <!-- Section 5: Medical & Crisis Disclaimer -->
+    <section class="section" id="disclaimer">
       <div class="container">
-        <div class="disclaimer-box">
-          <div class="disclaimer-badge">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              aria-hidden="true">
+        <div class="liquid-glass-card disclaimer-card">
+          <div class="disclaimer-heading">
+            <svg class="disclaimer-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
               <line x1="12" y1="9" x2="12" y2="13"></line>
               <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
-            <span>Important Medical & Wellness Notice</span>
+            <h3 class="disclaimer-title">Important Medical &amp; Wellness Notice</h3>
           </div>
-
-          <h2 id="disclaimer-title" class="disclaimer-title">
-            Sakina is an AI Wellness Companion, Not a Clinical Healthcare Service
-          </h2>
-
-          <p class="disclaimer-statement">
-            <strong>Sakina is an AI-powered emotional and spiritual wellness companion</strong>, not a licensed medical
-            provider, clinical psychologist, psychiatrist, or therapy service. Sakina is not designed to diagnose,
-            treat, prevent, or cure psychiatric disorders, severe depression, clinical anxiety, or acute medical
-            emergencies. Information provided by Sakina should never replace professional medical advice, clinical
-            diagnosis, or therapeutic care from a qualified healthcare professional.
+          <p class="disclaimer-body">
+            <strong>Sakina is an AI-powered emotional and spiritual wellness companion</strong>, not a licensed medical provider, clinical psychologist, psychiatrist, or therapy service. Sakina is not designed to diagnose, treat, prevent, or cure psychiatric disorders or clinical emergencies. Information provided should never replace professional medical care.
           </p>
-
-          <div class="crisis-alert">
-            <h3 class="crisis-heading">Immediate Crisis & Emergency Support</h3>
-            <p class="crisis-subtext">
-              If you or someone you care about is experiencing thoughts of self-harm, severe psychiatric distress, or a
-              medical emergency, please do not use this app. Contact emergency services or reach out to a free,
-              confidential crisis line immediately:
-            </p>
-            <ul class="crisis-list">
-              <li>
-                <strong>United States:</strong> Call or text <span class="hotline-badge">988</span> (Suicide & Crisis
-                Lifeline) or text <code>HOME</code> to <code>741741</code>
-              </li>
-              <li>
-                <strong>United Kingdom:</strong> Call <span class="hotline-badge">111</span> (NHS) or <span
-                  class="hotline-badge">116 123</span> (Samaritans Helpline)
-              </li>
-              <li>
-                <strong>Canada:</strong> Call or text <span class="hotline-badge">988</span> (Suicide Crisis Helpline)
-              </li>
-              <li>
-                <strong>International:</strong> Find free, confidential crisis hotlines worldwide at <a
-                  href="https://findahelpline.com/" target="_blank" rel="noopener"
-                  class="crisis-link">findahelpline.com</a>
-              </li>
-            </ul>
+          <div class="crisis-strip">
+            <div class="crisis-item">
+              <strong>United States:</strong> Call or text <span class="crisis-badge">988</span> or text <code>HOME</code> to <code>741741</code>
+            </div>
+            <div class="crisis-item">
+              <strong>United Kingdom:</strong> Call <span class="crisis-badge">111</span> (NHS) or <span class="crisis-badge">116 123</span> (Samaritans)
+            </div>
+            <div class="crisis-item">
+              <strong>Canada:</strong> Call or text <span class="crisis-badge">988</span> (Suicide Crisis Helpline)
+            </div>
+            <div class="crisis-item">
+              <strong>International:</strong> Free crisis support worldwide at <a href="https://findahelpline.com/" target="_blank" rel="noopener" class="crisis-link">findahelpline.com</a>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Call to Action Banner -->
-    <section class="section-cta" aria-labelledby="cta-title">
-      <div class="container cta-container">
-        <div class="cta-card">
-          <span class="cta-kicker">Begin Your Journey Toward Peace</span>
-          <h2 id="cta-title" class="cta-title">Find Tranquility for Your Mind and Heart</h2>
-          <p class="cta-text">
-            Step into a peaceful, non-judgmental sanctuary where ancient spiritual insight meets modern emotional
-            science.
+    <!-- Section 6: Final Call to Action -->
+    <section class="section-cta">
+      <div class="container">
+        <div class="liquid-glass-card cta-card text-center">
+          <h2 class="cta-title">Find Stillness for Your Mind and Heart</h2>
+          <p class="cta-subtitle">
+            Step into an intelligent, peaceful sanctuary crafted for clarity, spiritual presence, and emotional renewal.
           </p>
-          <div class="cta-button-group">
-            <a href="https://sakina-tranquility.onrender.com" class="btn btn-primary btn-lg" target="_blank"
-              rel="noopener">
+          <div class="cta-buttons">
+            <a href="https://sakina-tranquility.onrender.com" class="btn btn-primary btn-lg" target="_blank" rel="noopener">
               <span>Launch Sakina Companion</span>
-              <svg class="icon-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <line x1="7" y1="17" x2="17" y2="7"></line>
                 <polyline points="7 7 17 7 17 17"></polyline>
               </svg>
             </a>
-            <a href="https://github.com/google/agent-development-kit" class="btn btn-secondary btn-lg" target="_blank"
-              rel="noopener">
+            <a href="https://github.com/google/agent-development-kit" class="btn btn-secondary btn-lg" target="_blank" rel="noopener">
               <span>Built with Google ADK</span>
             </a>
           </div>
         </div>
       </div>
     </section>
-
-    <!-- Section 8: Public Reviews & Community Experience -->
-    <section class="section section-reviews" id="feedback" aria-labelledby="reviews-title">
-      <div class="container reviews-container">
-        <div class="section-header text-center">
-          <span class="section-kicker">Community Reflections</span>
-          <h2 id="reviews-title" class="section-title">Share Your Experience</h2>
-          <p class="section-subtitle">
-            Reflections from seekers finding presence, emotional balance, and spiritual calm with Sakina.
-          </p>
-        </div>
-
-        <!-- Rating Summary Bar -->
-        <div class="reviews-summary-bar" id="reviewsSummaryBar">
-          <div class="summary-score-group">
-            <span class="summary-score" id="summaryAvgScore">5.0</span>
-            <div class="summary-stars" id="summaryStars" aria-label="Average 5.0 out of 5 stars">
-              <svg class="star-icon filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-              <svg class="star-icon filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-              <svg class="star-icon filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-              <svg class="star-icon filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-              <svg class="star-icon filled" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-            </div>
-            <span class="summary-count" id="summaryCountText">Based on published community reviews</span>
-          </div>
-        </div>
-
-        <!-- Recent Reviews Compact Grid -->
-        <div class="reviews-grid" id="reviewsGrid" aria-label="Community reviews">
-          <!-- Populated dynamically via script.js -->
-        </div>
-
-        <!-- Compact Review Form Card -->
-        <div class="review-form-card">
-          <!-- Success State (Hidden by default) -->
-          <div id="reviewSuccessState" class="review-status-card" role="region" aria-live="polite" hidden>
-            <div class="review-status-icon" aria-hidden="true">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-              </svg>
-            </div>
-            <p class="review-status-text" id="reviewSuccessMessage">
-              Thank you for sharing your experience! Your review is now live.
-            </p>
-            <button type="button" class="btn btn-secondary btn-sm" id="reviewSubmitAnotherBtn">
-              Write Another Review
-            </button>
-          </div>
-
-          <!-- Active Form -->
-          <form id="reviewForm" class="review-form" novalidate>
-            <!-- Honeypot for spam bots -->
-            <div class="hp-trap" aria-hidden="true" style="position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none;">
-              <label for="reviewHoneypot">Do not fill this field</label>
-              <input type="text" id="reviewHoneypot" name="hp_website" tabindex="-1" autocomplete="off" />
-            </div>
-
-            <!-- Interactive Star Rating (1-5 stars, NO numbers next to stars) -->
-            <div class="form-group rating-form-group">
-              <div class="rating-header">
-                <label class="form-label" id="ratingLabel">Your Rating <span class="label-required" aria-hidden="true">*</span></label>
-              </div>
-              <div class="star-rating-widget" id="starRatingWidget" role="radiogroup" aria-labelledby="ratingLabel">
-                <button type="button" class="star-btn" data-rating="1" aria-label="1 star" role="radio" aria-checked="false">
-                  <svg class="star-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                  </svg>
-                </button>
-                <button type="button" class="star-btn" data-rating="2" aria-label="2 stars" role="radio" aria-checked="false">
-                  <svg class="star-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                  </svg>
-                </button>
-                <button type="button" class="star-btn" data-rating="3" aria-label="3 stars" role="radio" aria-checked="false">
-                  <svg class="star-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                  </svg>
-                </button>
-                <button type="button" class="star-btn" data-rating="4" aria-label="4 stars" role="radio" aria-checked="false">
-                  <svg class="star-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                  </svg>
-                </button>
-                <button type="button" class="star-btn" data-rating="5" aria-label="5 stars" role="radio" aria-checked="false">
-                  <svg class="star-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                  </svg>
-                </button>
-              </div>
-              <input type="hidden" id="reviewRatingInput" name="rating" value="" />
-              <div class="field-error" id="reviewRatingError" role="alert" aria-live="polite"></div>
-            </div>
-
-            <!-- Single Review Text Area with short placeholder -->
-            <div class="form-group">
-              <label for="reviewMessage" class="form-label">
-                Your Review <span class="label-required" aria-hidden="true">*</span>
-              </label>
-              <textarea id="reviewMessage" name="message" class="form-textarea review-textarea" rows="3" minlength="10" maxlength="1000" required placeholder="Write your review..." aria-describedby="reviewMessageError"></textarea>
-              <div class="field-error" id="reviewMessageError" role="alert" aria-live="polite"></div>
-            </div>
-
-            <!-- Display Name + Anonymous Option -->
-            <div class="form-group">
-              <div class="review-author-row">
-                <input type="text" id="reviewName" name="name" class="form-input review-name-input" maxlength="50" placeholder="Display name (optional)" autocomplete="name" />
-                <label class="anonymous-toggle">
-                  <input type="checkbox" id="reviewAnonymousCheckbox" />
-                  <span>Post anonymously</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- General Error Message -->
-            <div class="form-alert form-alert-error" id="reviewGeneralError" role="alert" aria-live="assertive" hidden>
-              <span id="reviewGeneralErrorText"></span>
-            </div>
-
-            <!-- Submit Button ("Post Review") & Concise Privacy Note -->
-            <div class="review-actions-row">
-              <button type="submit" id="reviewSubmitBtn" class="btn btn-primary btn-submit">
-                <span class="btn-text">Post Review</span>
-                <svg class="spinner-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true" style="display:none;">
-                  <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
-                  <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path>
-                </svg>
-              </button>
-              <p class="review-privacy-note">
-                Your IP and personal details are never shared publicly.
-              </p>
-            </div>
-          </form>
-        </div>
-      </div>
-    </section>
-
   </main>
 
   <!-- Site Footer -->
-  <footer class="site-footer">
+  <footer class="glass-footer">
     <div class="container footer-container">
-      <div class="footer-main">
-        <div class="footer-brand">
-          <div class="footer-brand-header">
-            <img src="assets/logo.png" alt="Sakina Emblem" width="32" height="32" />
-            <span class="footer-brand-title">Sakina (سكينة)</span>
-          </div>
-          <p class="footer-brand-tagline">
-            An AI companion for psychological tranquility and spiritual wellbeing, harmonizing classical Islamic
-            psychology (Ilm al-Nafs) with contemporary evidence-based mental health science.
-          </p>
-          <p class="footer-arabic-motto" lang="ar" dir="rtl">
-            صُنِعَ بِنِيَّةٍ وَإِحْسَانٍ • جَعَلَهُ اللَّهُ بَلْسَمًا وَسَكِينَةً
-          </p>
-        </div>
-
-        <div class="footer-links-group">
-          <div class="footer-col">
-            <h3 class="footer-col-title">Navigation</h3>
-            <ul class="footer-links">
-              <li><a href="#about">What is Sakina</a></li>
-              <li><a href="#audience">Who It's For</a></li>
-              <li><a href="#how-it-works">How It Works</a></li>
-              <li><a href="#foundations">Tradition & Science</a></li>
-              <li><a href="#privacy">Privacy & Security</a></li>
-              <li><a href="#faq">FAQ</a></li>
-              <li><a href="#feedback">Reviews</a></li>
-            </ul>
-          </div>
-
-          <div class="footer-col">
-            <h3 class="footer-col-title">Companion</h3>
-            <ul class="footer-links">
-              <li><a href="https://sakina-tranquility.onrender.com" target="_blank" rel="noopener">Open Sakina App</a>
-              </li>
-              <li><a href="#foundations">Islamic Psychology Matrix</a></li>
-              <li><a href="#disclaimer">Safety & Medical Disclaimer</a></li>
-              <li><a href="https://findahelpline.com/" target="_blank" rel="noopener">Crisis Helplines</a></li>
-            </ul>
-          </div>
-        </div>
+      <div class="footer-brand">
+        <img src="assets/logo.png" alt="Sakina Emblem" width="28" height="28" />
+        <span>Sakina (سكينة)</span>
       </div>
 
-      <div class="footer-bottom">
-        <p class="footer-copyright">
-          &copy; <span id="currentYear">2026</span> Sakina (Sakina AI). Open-source under the MIT License. Powered by Google ADK AI agent framework &amp; Gemini AI wellness technology.
-        </p>
-        <p class="footer-disclaimer-note">
-          Sakina is an AI-powered emotional wellness companion, not a licensed medical or psychiatric provider.
-        </p>
+      <div class="footer-disclaimer">
+        Sakina is an AI-powered emotional wellness companion, not a licensed medical or psychiatric provider.
+      </div>
+
+      <div class="footer-meta">
+        <span>&copy; <span id="currentYear">2026</span> Sakina (Sakina AI). Powered by Google ADK AI agent framework &amp; Gemini AI wellness technology. All rights reserved.</span>
       </div>
     </div>
   </footer>
 
-  <!-- Lightweight, Progressive-Enhancement Script -->
+  <!-- Interactive Script -->
   <script src="script.js"></script>
 </body>
 
